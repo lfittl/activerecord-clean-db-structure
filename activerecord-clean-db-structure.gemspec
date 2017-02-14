@@ -15,5 +15,5 @@ Gem::Specification.new do |s|
   s.homepage      = 'https://github.com/lfittl/activerecord-clean-db-structure'
   s.license       = 'MIT'
 
-  s.add_dependency('rails','>= 4.2')
+  s.add_dependency('activerecord', '>= 4.2')
 end
