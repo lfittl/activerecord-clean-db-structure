@@ -5,9 +5,14 @@ Rake::Task['db:structure:dump'].enhance do
 end
 
 task :clean_db_structure do
-  filename = ENV['DB_STRUCTURE'] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, 'structure.sql')
+  filenames = ENV['DB_STRUCTURE']
+  filenames ||= Rails.application.config.paths['db'].map do |path|
+    File.join(path, 'structure.sql')
+  end
 
-  cleaner = ActiveRecordCleanDbStructure::CleanDump.new(File.read(filename))
-  cleaner.run
-  File.write(filename, cleaner.dump)
+  filenames.each do |filename|
+    cleaner = ActiveRecordCleanDbStructure::CleanDump.new(File.read(filename))
+    cleaner.run
+    File.write(filename, cleaner.dump)
+  end
 end
