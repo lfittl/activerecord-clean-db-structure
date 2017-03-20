@@ -37,9 +37,9 @@ module ActiveRecordCleanDbStructure
       dump.gsub!(/^ALTER SEQUENCE \w+_id_seq OWNED BY .*;$/, '')
       dump.gsub!(/^ALTER TABLE ONLY \w+ ALTER COLUMN id SET DEFAULT nextval\('\w+_id_seq'::regclass\);$/, '')
       dump.gsub!(/^ALTER TABLE ONLY \w+\s+ADD CONSTRAINT \w+_pkey PRIMARY KEY \(id\);$/, '')
-      dump.gsub!(/^-- Name: [\w_]+ id; Type: DEFAULT$/, '')
+      dump.gsub!(/^-- Name: (\w+\s+)?id; Type: DEFAULT$/, '')
       dump.gsub!(/^-- .*_id_seq; Type: SEQUENCE.*/, '')
-      dump.gsub!(/^-- Name: [\w_]+ \w+_pkey; Type: CONSTRAINT$/, '')
+      dump.gsub!(/^-- Name: (\w+\s+)?\w+_pkey; Type: CONSTRAINT$/, '')
 
       # Remove inherited tables
       inherited_tables_regexp = /-- Name: ([\w_]+); Type: TABLE\n\n[^;]+?INHERITS \([\w_]+\);/m
