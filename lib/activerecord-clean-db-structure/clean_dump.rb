@@ -30,8 +30,26 @@ module ActiveRecordCleanDbStructure
       # Reduce noise for id fields by making them SERIAL instead of integer+sequence stuff
       #
       # This is a bit optimistic, but works as long as you don't have an id field thats not a sequence/uuid
-      dump.gsub!(/^CREATE TABLE (\w+) \(\n    id integer NOT NULL,$/, "CREATE TABLE \\1 (\n    id SERIAL PRIMARY KEY,")
-      dump.gsub!(/^CREATE TABLE (\w+) \(\n    id bigint NOT NULL,$/, "CREATE TABLE \\1 (\n    id BIGSERIAL PRIMARY KEY,")
+      is_table = false, count_open_brackets = 0, count_close_brackets = 0
+      @dump = dump.lines.map do |line|
+        is_table = true if line =~ /CREATE TABLE (\w+) \(/
+
+        count_open_brackets  += line.count('(')
+        count_close_brackets += line.count(')')
+
+        is_table = false if is_table && count_open_brackets == count_close_brackets
+
+        if !is_table # optimization speed
+          line
+        elsif line =~ /^    id integer NOT NULL/
+          line.sub('id integer NOT NULL', 'id SERIAL PRIMARY KEY')
+        elsif line =~ /^    id bigint NOT NULL/
+          line.sub('id bigint NOT NULL', 'id BIGSERIAL PRIMARY KEY')
+        else
+          line
+        end
+      end.join
+
       dump.gsub!(/^    id uuid DEFAULT uuid_generate_v4\(\) NOT NULL,$/, '    id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,')
       dump.gsub!(/^CREATE SEQUENCE \w+_id_seq\s+START WITH 1\s+INCREMENT BY 1\s+NO MINVALUE\s+NO MAXVALUE\s+CACHE 1;$/, '')
       dump.gsub!(/^ALTER SEQUENCE \w+_id_seq OWNED BY .*;$/, '')
