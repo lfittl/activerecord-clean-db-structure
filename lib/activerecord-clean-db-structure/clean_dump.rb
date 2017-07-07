@@ -27,6 +27,16 @@ module ActiveRecordCleanDbStructure
       # Remove useless comment lines
       dump.gsub!(/^--$/, '')
 
+      # Mask user mapping
+      dump.gsub!(
+        /^CREATE USER MAPPING FOR \w+ SERVER (\w+) .*;/m,
+        'CREATE USER MAPPING FOR some_user SERVER \1;'
+      )
+      dump.gsub!(
+        /^-- Name: USER MAPPING \w+ SERVER (\w+); Type: USER MAPPING/,
+        '-- Name: USER MAPPING some_user SERVER \1; Type: USER MAPPING'
+      )
+
       # Reduce noise for id fields by making them SERIAL instead of integer+sequence stuff
       #
       # This is a bit optimistic, but works as long as you don't have an id field thats not a sequence/uuid

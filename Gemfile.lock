@@ -1,29 +1,29 @@
 PATH
   remote: .
   specs:
-    activerecord-clean-db-structure (0.2.0)
+    activerecord-clean-db-structure (0.2.1)
       activerecord (>= 4.2)
 
 GEM
   remote: https://rubygems.org/
   specs:
-    activemodel (5.0.1)
-      activesupport (= 5.0.1)
-    activerecord (5.0.1)
-      activemodel (= 5.0.1)
-      activesupport (= 5.0.1)
-      arel (~> 7.0)
-    activesupport (5.0.1)
+    activemodel (5.1.2)
+      activesupport (= 5.1.2)
+    activerecord (5.1.2)
+      activemodel (= 5.1.2)
+      activesupport (= 5.1.2)
+      arel (~> 8.0)
+    activesupport (5.1.2)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (~> 0.7)
       minitest (~> 5.1)
       tzinfo (~> 1.1)
-    arel (7.1.4)
-    concurrent-ruby (1.0.4)
-    i18n (0.8.0)
-    minitest (5.10.1)
-    thread_safe (0.3.5)
-    tzinfo (1.2.2)
+    arel (8.0.0)
+    concurrent-ruby (1.0.5)
+    i18n (0.8.4)
+    minitest (5.10.2)
+    thread_safe (0.3.6)
+    tzinfo (1.2.3)
       thread_safe (~> 0.1)
 
 PLATFORMS
@@ -33,4 +33,4 @@ DEPENDENCIES
   activerecord-clean-db-structure!
 
 BUNDLED WITH
-   1.12.5
+   1.15.1
