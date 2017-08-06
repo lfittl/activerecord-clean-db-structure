@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.2    2017-08-05
+
+* Support Rails 5.1 primary key UUIDs that rely on gen_random_uuid()
+
+
 ## 0.2.1    2017-06-30
 
 * Allow primary keys to be the last column of a table [Clemens Kofler](https://github.com/clemens)
