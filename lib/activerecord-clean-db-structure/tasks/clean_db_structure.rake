@@ -9,6 +9,8 @@ Rake::Task['db:structure:dump'].enhance do
   filenames.each do |filename|
     cleaner = ActiveRecordCleanDbStructure::CleanDump.new(File.read(filename))
     cleaner.run
-    File.write(filename, cleaner.dump)
+    File.open(filename, 'w') do |f|
+      f << cleaner.dump
+    end
   end
 end
