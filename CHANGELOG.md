@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.3    2017-10-21
+
+* pg 10.x adds AS Integer to structure.sql format [Nathan Woodhull](https://github.com/woodhull)
+
+
 ## 0.2.2    2017-08-05
 
 * Support Rails 5.1 primary key UUIDs that rely on gen_random_uuid()
