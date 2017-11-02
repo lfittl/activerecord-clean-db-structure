@@ -18,8 +18,14 @@ module ActiveRecordCleanDbStructure
 
       # Remove pg_stat_statements extension (its not relevant to the code)
       dump.gsub!(/^CREATE EXTENSION IF NOT EXISTS pg_stat_statements.*/, '')
-      dump.gsub!(/^COMMENT ON EXTENSION pg_stat_statements.*/, '')
       dump.gsub!(/^-- Name: (EXTENSION )?pg_stat_statements;.*/, '')
+
+      # Remove pg_buffercache extension (its not relevant to the code)
+      dump.gsub!(/^CREATE EXTENSION IF NOT EXISTS pg_buffercache.*/, '')
+      dump.gsub!(/^-- Name: (EXTENSION )?pg_buffercache;.*/, '')
+
+      # Remove comments on extensions, they create problems if the extension is owned by another user
+      dump.gsub!(/^COMMENT ON EXTENSION .*/, '')
 
       # Remove useless, version-specific parts of comments
       dump.gsub!(/^-- (.*); Schema: (public|-); Owner: -.*/, '-- \1')

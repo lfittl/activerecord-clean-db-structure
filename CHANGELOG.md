@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.4    2017-11-02
+
+* Remove pg_buffercache extension if present (its only used for statistics purposes)
+* Remove extension comments if present - they can prevent non-superusers from
+  restoring the tables, and are never used together with Rails anyway
+
+
 ## 0.2.3    2017-10-21
 
 * pg 10.x adds AS Integer to structure.sql format [Nathan Woodhull](https://github.com/woodhull)
