@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.5    2017-11-15
+
+* Filter out indices belonging partitioned tables
+
+
 ## 0.2.4    2017-11-02
 
 * Remove pg_buffercache extension if present (its only used for statistics purposes)
