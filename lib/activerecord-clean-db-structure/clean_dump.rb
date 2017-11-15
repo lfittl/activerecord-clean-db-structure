@@ -54,6 +54,12 @@ module ActiveRecordCleanDbStructure
       dump.gsub!(inherited_tables_regexp, '')
       inherited_tables.each do |inherited_table|
         dump.gsub!(/ALTER TABLE ONLY #{inherited_table}[^;]+;/, '')
+
+        index_regexp = /CREATE INDEX ([\w_]+) ON #{inherited_table}[^;]+;/m
+        dump.scan(index_regexp).map(&:first).each do |inherited_table_index|
+          dump.gsub!("-- Name: #{inherited_table_index}; Type: INDEX", '')
+        end
+        dump.gsub!(index_regexp, '')
       end
 
       # Remove whitespace between schema migration INSERTS to make editing easier
