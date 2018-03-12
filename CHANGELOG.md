@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.6    2018-03-11
+
+* Fix regular expressions to support schema qualification changes in 10.3
+
+
 ## 0.2.5    2017-11-15
 
 * Filter out indices belonging partitioned tables
