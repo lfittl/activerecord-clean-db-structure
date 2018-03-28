@@ -18,8 +18,14 @@ module ActiveRecordCleanDbStructure
 
       # Remove pg_stat_statements extension (its not relevant to the code)
       dump.gsub!(/^CREATE EXTENSION IF NOT EXISTS pg_stat_statements.*/, '')
-      dump.gsub!(/^COMMENT ON EXTENSION pg_stat_statements.*/, '')
       dump.gsub!(/^-- Name: (EXTENSION )?pg_stat_statements;.*/, '')
+
+      # Remove pg_buffercache extension (its not relevant to the code)
+      dump.gsub!(/^CREATE EXTENSION IF NOT EXISTS pg_buffercache.*/, '')
+      dump.gsub!(/^-- Name: (EXTENSION )?pg_buffercache;.*/, '')
+
+      # Remove comments on extensions, they create problems if the extension is owned by another user
+      dump.gsub!(/^COMMENT ON EXTENSION .*/, '')
 
       # Remove useless, version-specific parts of comments
       dump.gsub!(/^-- (.*); Schema: (public|-); Owner: -.*/, '-- \1')
@@ -27,31 +33,46 @@ module ActiveRecordCleanDbStructure
       # Remove useless comment lines
       dump.gsub!(/^--$/, '')
 
-      # Mask user mapping
-      dump.gsub!(/^CREATE USER MAPPING FOR \w+ SERVER (\w+) .*?;/m, 'CREATE USER MAPPING FOR some_user SERVER \1;')
-      dump.gsub!(/^-- Name: USER MAPPING \w+ SERVER (\w+); Type: USER MAPPING/, '-- Name: USER MAPPING some_user SERVER \1; Type: USER MAPPING')
+      # remove comments
+      dump.gsub!(/^-- Name.+ Type: (COMMENT|EXTENSION|INDEX|TABLE|TYPE)$/, '')
+
+      ### NEED FOR TEST DATABASE `rails db:setup`
+        # remove server and user for FDW
+        dump.gsub!(/^-- Name: [\w ]+; Type: SERVER.+?;/m, '')
+        dump.gsub!(/^-- Name: [\w ]+; Type: USER MAPPING.+?;/m, '')
+
+        # FDW table to native table
+        dump.gsub!(/^CREATE FOREIGN TABLE (.+?)\nSERVER.+?;/m, "CREATE TABLE \\1;")
+      ###
 
       # Reduce noise for id fields by making them SERIAL instead of integer+sequence stuff
       #
       # This is a bit optimistic, but works as long as you don't have an id field thats not a sequence/uuid
-      dump.gsub!(/^CREATE TABLE (\w+) \(\n    id integer NOT NULL(.*?);/m, "CREATE TABLE \\1 (\n    id SERIAL PRIMARY KEY\\2;")
-      dump.gsub!(/^CREATE TABLE (\w+) \(\n    id bigint NOT NULL(.*?);/m, "CREATE TABLE \\1 (\n    id BIGSERIAL PRIMARY KEY\\2;")
+      dump.gsub!(/^CREATE TABLE ([\w.]+) \(\n    id integer NOT NULL(.*?);/m, "CREATE TABLE \\1 (\n    id SERIAL PRIMARY KEY\\2;")
+      dump.gsub!(/^CREATE TABLE ([\w.]+) \(\n    id bigint NOT NULL(.*?);/m, "CREATE TABLE \\1 (\n    id BIGSERIAL PRIMARY KEY\\2;")
 
-      dump.gsub!(/^    id uuid DEFAULT uuid_generate_v4\(\) NOT NULL,$/, '    id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,')
-      dump.gsub!(/^CREATE SEQUENCE \w+_id_seq\s+START WITH 1\s+INCREMENT BY 1\s+NO MINVALUE\s+NO MAXVALUE\s+CACHE 1;$/, '')
-      dump.gsub!(/^ALTER SEQUENCE \w+_id_seq OWNED BY .*;$/, '')
-      dump.gsub!(/^ALTER TABLE ONLY \w+ ALTER COLUMN id SET DEFAULT nextval\('\w+_id_seq'::regclass\);$/, '')
-      dump.gsub!(/^ALTER TABLE ONLY \w+\s+ADD CONSTRAINT \w+_pkey PRIMARY KEY \(id\);$/, '')
+      dump.gsub!(/^    id uuid DEFAULT (public\.)?uuid_generate_v4\(\) NOT NULL(,)?$/, '    id uuid DEFAULT \1uuid_generate_v4() PRIMARY KEY\2')
+      dump.gsub!(/^    id uuid DEFAULT (public\.)?gen_random_uuid\(\) NOT NULL(,)?$/, '    id uuid DEFAULT \1gen_random_uuid() PRIMARY KEY\2')
+      dump.gsub!(/^CREATE SEQUENCE [\w\.]+_id_seq\s+(AS integer\s+)?START WITH 1\s+INCREMENT BY 1\s+NO MINVALUE\s+NO MAXVALUE\s+CACHE 1;$/, '')
+      dump.gsub!(/^ALTER SEQUENCE [\w\.]+_id_seq OWNED BY .*;$/, '')
+      dump.gsub!(/^ALTER TABLE ONLY [\w\.]+ ALTER COLUMN id SET DEFAULT nextval\('[\w\.]+_id_seq'::regclass\);$/, '')
+      dump.gsub!(/^ALTER TABLE ONLY [\w\.]+\s+ADD CONSTRAINT [\w\.]+_pkey PRIMARY KEY \(id\);$/, '')
       dump.gsub!(/^-- Name: (\w+\s+)?id; Type: DEFAULT$/, '')
       dump.gsub!(/^-- .*_id_seq; Type: SEQUENCE.*/, '')
       dump.gsub!(/^-- Name: (\w+\s+)?\w+_pkey; Type: CONSTRAINT$/, '')
 
       # Remove inherited tables
-      inherited_tables_regexp = /-- Name: ([\w_]+); Type: TABLE\n\n[^;]+?INHERITS \([\w_]+\);/m
+      inherited_tables_regexp = /-- Name: ([\w_\.]+); Type: TABLE\n\n[^;]+?INHERITS \([\w_\.]+\);/m
       inherited_tables = dump.scan(inherited_tables_regexp).map(&:first)
       dump.gsub!(inherited_tables_regexp, '')
       inherited_tables.each do |inherited_table|
-        dump.gsub!(/ALTER TABLE ONLY #{inherited_table}[^;]+;/, '')
+        dump.gsub!(/ALTER TABLE ONLY (public\.)?#{inherited_table}[^;]+;/, '')
+
+        index_regexp = /CREATE INDEX ([\w_]+) ON (public\.)?#{inherited_table}[^;]+;/m
+        dump.scan(index_regexp).map(&:first).each do |inherited_table_index|
+          dump.gsub!("-- Name: #{inherited_table_index}; Type: INDEX", '')
+        end
+        dump.gsub!(index_regexp, '')
       end
 
       # Remove whitespace between schema migration INSERTS to make editing easier
