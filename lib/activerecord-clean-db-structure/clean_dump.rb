@@ -62,6 +62,27 @@ module ActiveRecordCleanDbStructure
         dump.gsub!(index_regexp, '')
       end
 
+      # Remove partitioned tables
+      partitioned_tables_regexp = /-- Name: ([\w_\.]+); Type: TABLE\n\n[^;]+?PARTITION OF [\w_\.]+\n[^;]+?;/m
+      partitioned_tables = dump.scan(partitioned_tables_regexp).map(&:first)
+      dump.gsub!(partitioned_tables_regexp, '')
+      partitioned_tables.each do |partitioned_table|
+        dump.gsub!(/ALTER TABLE ONLY (public\.)?#{partitioned_table}[^;]+;/, '')
+        dump.gsub!(/-- Name: #{partitioned_table} [^;]+; Type: DEFAULT/, '')
+
+        index_regexp = /CREATE INDEX ([\w_]+) ON (public\.)?#{partitioned_table}[^;]+;/m
+        dump.scan(index_regexp).map(&:first).each do |partitioned_table_index|
+          dump.gsub!("-- Name: #{partitioned_table_index}; Type: INDEX ATTACH", '')
+          dump.gsub!("-- Name: #{partitioned_table_index}; Type: INDEX", '')
+          dump.gsub!(/ALTER INDEX ([\w_\.]+) ATTACH PARTITION (public\.)?#{partitioned_table_index};/, '')
+        end
+        dump.gsub!(index_regexp, '')
+
+        dump.gsub!(/-- Name: #{partitioned_table}_pkey; Type: INDEX ATTACH\n\n[^;]+?ATTACH PARTITION (public\.)?#{partitioned_table}_pkey;/, '')
+      end
+      # This is mostly done to allow restoring Postgres 11 output on Postgres 10
+      dump.gsub!(/CREATE INDEX ([\w_]+) ON ONLY/, 'CREATE INDEX \\1 ON')
+
       # Remove whitespace between schema migration INSERTS to make editing easier
       dump.gsub!(/^(INSERT INTO schema_migrations .*)\n\n/, "\\1\n")
 
