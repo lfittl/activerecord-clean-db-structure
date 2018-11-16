@@ -33,11 +33,24 @@ module ActiveRecordCleanDbStructure
       # Remove useless comment lines
       dump.gsub!(/^--$/, '')
 
+      # remove comments
+      dump.gsub!(/^-- Name.+ Type: (COMMENT|EXTENSION|INDEX|TABLE|TYPE)$/, '')
+
+      ### NEED FOR TEST DATABASE `rails db:setup`
+        # remove server and user for FDW
+        dump.gsub!(/^-- Name: [\w ]+; Type: SERVER.+?;/m, '')
+        dump.gsub!(/^-- Name: [\w ]+; Type: USER MAPPING.+?;/m, '')
+
+        # FDW table to native table
+        dump.gsub!(/^CREATE FOREIGN TABLE (.+?)\nSERVER.+?;/m, "CREATE TABLE \\1;")
+      ###
+
       # Reduce noise for id fields by making them SERIAL instead of integer+sequence stuff
       #
       # This is a bit optimistic, but works as long as you don't have an id field thats not a sequence/uuid
-      dump.gsub!(/^    id integer NOT NULL(,)?$/, '    id SERIAL PRIMARY KEY\1')
-      dump.gsub!(/^    id bigint NOT NULL(,)?$/, '    id BIGSERIAL PRIMARY KEY\1')
+      dump.gsub!(/^CREATE TABLE ([\w.]+) \(\n    id integer NOT NULL(.*?);/m, "CREATE TABLE \\1 (\n    id SERIAL PRIMARY KEY\\2;")
+      dump.gsub!(/^CREATE TABLE ([\w.]+) \(\n    id bigint NOT NULL(.*?);/m, "CREATE TABLE \\1 (\n    id BIGSERIAL PRIMARY KEY\\2;")
+
       dump.gsub!(/^    id uuid DEFAULT (public\.)?uuid_generate_v4\(\) NOT NULL(,)?$/, '    id uuid DEFAULT \1uuid_generate_v4() PRIMARY KEY\2')
       dump.gsub!(/^    id uuid DEFAULT (public\.)?gen_random_uuid\(\) NOT NULL(,)?$/, '    id uuid DEFAULT \1gen_random_uuid() PRIMARY KEY\2')
       dump.gsub!(/^CREATE SEQUENCE [\w\.]+_id_seq\s+(AS integer\s+)?START WITH 1\s+INCREMENT BY 1\s+NO MINVALUE\s+NO MAXVALUE\s+CACHE 1;$/, '')
