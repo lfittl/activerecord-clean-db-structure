@@ -107,6 +107,46 @@ module ActiveRecordCleanDbStructure
 
       # Reduce 2+ lines of whitespace to one line of whitespace
       dump.gsub!(/\n{2,}/m, "\n\n")
+
+      dump.replace(sort_table_columns(dump))
+    end
+
+    def sort_table_columns(source)
+      result = []
+
+      parse_column_name = ->(line) { line.match(/^    "?([^" ]+)/)[1] }
+      with_column_separator = ->(line) { line.sub(/,?\n$/, ",\n") }
+      without_column_separator = ->(line) { line.sub(/,\n$/, "\n") }
+
+      inside_table = false
+      columns = []
+
+      source.each_line do |source_line|
+        if source_line.start_with?("CREATE TABLE")
+          inside_table = true
+          columns = []
+          result << source_line
+        elsif source_line.start_with?(");")
+          if inside_table
+            inside_table = false
+            columns.sort_by!(&:first)
+
+            columns[0..-2].each do |_, line|
+              result << with_column_separator[line]
+            end
+
+            result << without_column_separator[columns.last[1]]
+          end
+
+          result << source_line
+        elsif inside_table
+          columns << [parse_column_name[source_line], source_line]
+        else
+          result << source_line
+        end
+      end
+
+      result.join
     end
   end
 end
