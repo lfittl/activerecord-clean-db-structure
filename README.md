@@ -61,6 +61,14 @@ CREATE INDEX index_users_on_tentant_id ON public.users USING btree (tenant_id);
 CREATE UNIQUE INDEX index_users_on_email ON public.users USING btree (email);
 ```
 
+To enable sorting the table column definitions alphabetically, discarding the actual order provided by `pg_dump`, set `order_column_definitions`:
+
+```ruby
+Rails.application.configure do
+  config.activerecord_clean_db_structure.order_column_definitions = true
+end
+```
+
 ## Authors
 
 * [Lukas Fittl](https://github.com/lfittl)

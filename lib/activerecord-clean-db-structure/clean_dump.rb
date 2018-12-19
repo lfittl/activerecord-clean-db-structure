@@ -108,10 +108,12 @@ module ActiveRecordCleanDbStructure
       # Reduce 2+ lines of whitespace to one line of whitespace
       dump.gsub!(/\n{2,}/m, "\n\n")
 
-      dump.replace(sort_table_columns(dump))
+      if options[:order_column_definitions] == true
+        dump.replace(order_column_definitions(dump))
+      end
     end
 
-    def sort_table_columns(source)
+    def order_column_definitions(source)
       result = []
 
       parse_column_name = ->(line) { line.match(/^    "?([^" ]+)/)[1] }
