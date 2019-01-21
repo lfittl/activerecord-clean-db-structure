@@ -30,7 +30,13 @@ Currently the library assumes all your `id` columns are either SERIAL, BIGSERIAL
 
 Multi-column primary keys, as well as tables that don't have `id` as the primary key are not supported right now, and might lead to wrong output.
 
-Patches and test cases welcome!
+You can disable this part of the _cleaning_ process in your `config/environments/<environment>.rb` (or `config/application.rb`):
+
+```ruby
+Rails.application.configure do
+  config.activerecord_clean_db_structure.ignore_ids = true
+end
+```
 
 ## Authors
 
