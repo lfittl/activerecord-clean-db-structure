@@ -90,6 +90,19 @@ module ActiveRecordCleanDbStructure
       # Remove whitespace between schema migration INSERTS to make editing easier
       dump.gsub!(/^(INSERT INTO schema_migrations .*)\n\n/, "\\1\n")
 
+      # Extract indexes, remove comments and place indexes just after the respective tables
+      indexes =
+        dump
+          .scan(/^CREATE.+INDEX.+ON.+\n/)
+          .group_by { |line| line.scan(/\b\w+\.\w+\b/).first }
+          .transform_values(&:join)
+
+      dump.gsub!(/^CREATE( UNIQUE)? INDEX \w+ ON .+\n+/, '')
+      dump.gsub!(/^-- Name: \w+; Type: INDEX\n+/, '')
+      indexes.each do |table, indexes_for_table|
+        dump.gsub!(/^(CREATE TABLE #{table}\b(:?[^;\n]*\n)+\);\n)/) { $1 + "\n" + indexes_for_table }
+      end
+
       # Reduce 2+ lines of whitespace to one line of whitespace
       dump.gsub!(/\n{2,}/m, "\n\n")
     end
