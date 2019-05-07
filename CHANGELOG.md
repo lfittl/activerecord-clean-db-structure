@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+* Add "indexes_after_tables" option to allow indexes to be placed following the respective tables
+
 ## 0.3.0    2019-05-07
 
 * Add "ignore_ids" option to allow disabling of primary key substitution logic [#12](https://github.com/lfittl/activerecord-clean-db-structure/pull/12) [Vladimir Dementyev](https://github.com/palkan)

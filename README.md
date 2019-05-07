@@ -38,6 +38,29 @@ Rails.application.configure do
 end
 ```
 
+## Other options
+
+You can optionally have indexes following the respective tables setting `indexes_after_tables`:
+
+```ruby
+Rails.application.configure do
+  config.activerecord_clean_db_structure.indexes_after_tables = true
+end
+```
+
+When it is enabled the structure looks like this:
+
+```sql
+CREATE TABLE public.users (
+    id SERIAL PRIMARY KEY,
+    tenant_id integer,
+    email text NOT NULL
+);
+
+CREATE INDEX index_users_on_tentant_id ON public.users USING btree (tenant_id);
+CREATE UNIQUE INDEX index_users_on_email ON public.users USING btree (email);
+```
+
 ## Authors
 
 * [Lukas Fittl](https://github.com/lfittl)
