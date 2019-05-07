@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0    2019-05-07
+
+* Add "ignore_ids" option to allow disabling of primary key substitution logic [#12](https://github.com/lfittl/activerecord-clean-db-structure/pull/12) [Vladimir Dementyev](https://github.com/palkan)
+* Compatibility with Rails 6 multi-database configuration
+
+
 ## 0.2.6    2018-03-11
 
 * Fix regular expressions to support schema qualification changes in 10.3
