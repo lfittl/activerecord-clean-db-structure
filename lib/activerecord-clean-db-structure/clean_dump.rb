@@ -17,6 +17,8 @@ module ActiveRecordCleanDbStructure
       dump.gsub!(/^-- Dumped.*/, '')
       dump.gsub!(/^SET row_security = off;$/, '') # 9.5
       dump.gsub!(/^SET idle_in_transaction_session_timeout = 0;$/, '') # 9.6
+      dump.gsub!(/^SET xmloption = content;$/, '') # 12
+      dump.gsub!(/^SET default_table_access_method = heap;$/, '') # 12
 
       # Remove pg_stat_statements extension (its not relevant to the code)
       dump.gsub!(/^CREATE EXTENSION IF NOT EXISTS pg_stat_statements.*/, '')
