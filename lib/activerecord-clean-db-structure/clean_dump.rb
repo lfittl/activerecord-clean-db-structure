@@ -87,7 +87,7 @@ module ActiveRecordCleanDbStructure
       # This is mostly done to allow restoring Postgres 11 output on Postgres 10
       dump.gsub!(/CREATE INDEX ([\w_]+) ON ONLY/, 'CREATE INDEX \\1 ON')
 
-      schema_migrations_cleanup
+      schema_migrations_cleanup if options[:schema_migrations_values_ordered] == true
 
       if options[:indexes_after_tables] == true
         # Extract indexes, remove comments and place them just after the respective tables

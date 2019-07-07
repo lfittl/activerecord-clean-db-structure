@@ -61,6 +61,24 @@ CREATE INDEX index_users_on_tentant_id ON public.users USING btree (tenant_id);
 CREATE UNIQUE INDEX index_users_on_email ON public.users USING btree (email);
 ```
 
+You can have the schema_migrations values reorganized to prevent merge conflicts by setting `schema_migrations_values_ordered`:
+
+```ruby
+Rails.application.configure do
+  config.activerecord_clean_db_structure.schema_migrations_values_ordered = true
+end
+```
+
+When it is enabled the values are ordered chronological and the semicolon is placed on a separate line:
+
+```sql
+INSERT INTO "schema_migrations" (version) VALUES
+ ('20190503120501')
+,('20190508123941')
+,('20190508132644')
+;
+```
+
 ## Authors
 
 * [Lukas Fittl](https://github.com/lfittl)

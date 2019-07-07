@@ -3,6 +3,7 @@
 ## Unreleased
 
 * Add "indexes_after_tables" option to allow indexes to be placed following the respective tables
+* Add "schema_migrations_values_ordered" option to prevent schema_migrations values causing merge conflicts
 
 ## 0.3.0    2019-05-07
 
