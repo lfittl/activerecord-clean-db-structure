@@ -70,10 +70,22 @@ module ActiveRecordCleanDbStructure
       end
 
       # Remove partitioned tables
-      partitioned_tables_regexp = /-- Name: ([\w_\.]+); Type: TABLE\n\n[^;]+?PARTITION OF [\w_\.]+\n[^;]+?;/m
-      partitioned_tables = dump.scan(partitioned_tables_regexp).map(&:first)
-      dump.gsub!(partitioned_tables_regexp, '')
+      partitioned_tables = []
+
+      # Postgres 12 pg_dump will output separate ATTACH PARTITION statements (even when run against an 11 or older server)
+      partitioned_tables_regexp1 = /ALTER TABLE ONLY [\w_\.]+ ATTACH PARTITION ([\w_\.]+)/
+      partitioned_tables += dump.scan(partitioned_tables_regexp1).map(&:last)
+
+      # Earlier versions use an inline PARTITION OF
+      partitioned_tables_regexp2 = /-- Name: ([\w_\.]+); Type: TABLE\n\n[^;]+?PARTITION OF [\w_\.]+\n[^;]+?;/m
+      partitioned_tables += dump.scan(partitioned_tables_regexp2).map(&:first)
+
       partitioned_tables.each do |partitioned_table|
+        partitioned_schema_name, partitioned_table_name_only = partitioned_table.split('.', 2)
+        dump.gsub!(/-- Name: #{partitioned_table_name_only}; Type: TABLE/, '')
+        dump.gsub!(/CREATE TABLE #{partitioned_table} \([^;]+;/m, '')
+        dump.gsub!(/ALTER TABLE ONLY ([\w_\.]+) ATTACH PARTITION #{partitioned_table}[^;]+;/m, '')
+
         dump.gsub!(/ALTER TABLE ONLY ([\w_]+\.)?#{partitioned_table}[^;]+;/, '')
         dump.gsub!(/-- Name: #{partitioned_table} [^;]+; Type: DEFAULT/, '')
 
