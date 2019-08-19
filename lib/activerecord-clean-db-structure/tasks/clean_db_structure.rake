@@ -5,7 +5,9 @@ Rake::Task['db:structure:dump'].enhance do
   filenames << ENV['DB_STRUCTURE'] if ENV.key?('DB_STRUCTURE')
 
   if ActiveRecord::VERSION::MAJOR >= 6
-    ActiveRecord::Tasks::DatabaseTasks.for_each do |spec_name|
+    # Based on https://github.com/rails/rails/pull/36560/files
+    databases = ActiveRecord::Tasks::DatabaseTasks.setup_initial_database_yaml
+    ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |spec_name|
       Rails.application.config.paths['db'].each do |path|
         filenames << File.join(path, spec_name + '_structure.sql')
       end
