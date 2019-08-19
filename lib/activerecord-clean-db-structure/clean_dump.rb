@@ -103,8 +103,12 @@ module ActiveRecordCleanDbStructure
       # This is mostly done to allow restoring Postgres 11 output on Postgres 10
       dump.gsub!(/CREATE INDEX ([\w_]+) ON ONLY/, 'CREATE INDEX \\1 ON')
 
-      # Remove whitespace between schema migration INSERTS to make editing easier
-      dump.gsub!(/^(INSERT INTO schema_migrations .*)\n\n/, "\\1\n")
+      if options[:order_schema_migrations_values] == true
+        schema_migrations_cleanup
+      else
+        # Remove whitespace between schema migration INSERTS to make editing easier
+        dump.gsub!(/^(INSERT INTO schema_migrations .*)\n\n/, "\\1\n")
+      end
 
       if options[:indexes_after_tables] == true
         # Extract indexes, remove comments and place them just after the respective tables
@@ -165,6 +169,23 @@ module ActiveRecordCleanDbStructure
       end
 
       result.join
+    end
+
+    private
+
+    # Cleanup of schema_migrations values to prevent merge conflicts:
+    # - sorts all values chronological
+    # - places the comma's in front of each value (except for the first)
+    # - places the semicolon on a separate last line
+    def schema_migrations_cleanup
+      # Read all schema_migrations values from the dump.
+      values = dump.scan(/^(\(\'\d{14}\'\))[,;]\n/).flatten.sort
+
+      # Replace the schema_migrations values.
+      dump.sub!(
+        /(?<=INSERT INTO "schema_migrations" \(version\) VALUES).+;\n*/m,
+        "\n #{values.join("\n,")}\n;\n\n"
+      )
     end
   end
 end

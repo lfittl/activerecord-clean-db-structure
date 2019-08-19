@@ -69,6 +69,24 @@ Rails.application.configure do
 end
 ```
 
+You can have the schema_migrations values reorganized to prevent merge conflicts by setting `order_schema_migrations_values`:
+
+```ruby
+Rails.application.configure do
+  config.activerecord_clean_db_structure.order_schema_migrations_values = true
+end
+```
+
+When it is enabled the values are ordered chronological and the semicolon is placed on a separate line:
+
+```sql
+INSERT INTO "schema_migrations" (version) VALUES
+ ('20190503120501')
+,('20190508123941')
+,('20190508132644')
+;
+```
+
 ## Authors
 
 * [Lukas Fittl](https://github.com/lfittl)
