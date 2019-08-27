@@ -2,8 +2,21 @@
 
 ## Unreleased
 
-* Add "indexes_after_tables" option to allow indexes to be placed following the respective tables
-* Add "order_schema_migrations_values" option to prevent schema_migrations values causing merge conflicts
+* ...
+
+## 0.4.0    2019-08-27
+
+* Add "indexes_after_tables" option to allow indexes to be placed following the respective tables [#13](https://github.com/lfittl/activerecord-clean-db-structure/pull/13) [Giovanni Kock Bonetti](https://github.com/giovannibonetti)
+* Add "order_schema_migrations_values" option to prevent schema_migrations values causing merge conflicts [#15](https://github.com/lfittl/activerecord-clean-db-structure/pull/15) [Nicke van Oorschot](https://github.com/nvanoorschot)
+* Add "order_column_definitions" option to sort table columns alphabetically [#11](https://github.com/lfittl/activerecord-clean-db-structure/pull/11) [RKushnir](https://github.com/RKushnir)
+* Generalize handling of schema names to not assume public
+* Rails 6 support
+  * Fix Rails 6 compatibility [#16](https://github.com/lfittl/activerecord-clean-db-structure/pull/16) [Giovanni Kock Bonetti](https://github.com/giovannibonetti)
+  * Fix handling of multiple structure.sql files
+* Remove Postgres 12 specific GUCs
+* Generalize handling of schema names to not assume public
+* Fix whitespace issue for config settings, remove default_with_oids
+
 
 ## 0.3.0    2019-05-07
 
