@@ -131,6 +131,18 @@ module ActiveRecordCleanDbStructure
       if options[:order_column_definitions] == true
         dump.replace(order_column_definitions(dump))
       end
+
+      if options[:force_datetime_default_format].is_a?(Time)
+        # force ALL default dates in the schema to be the same date
+        datestring = options[:force_datetime_default_format].strftime('%F %T')
+        dump.gsub!(/DEFAULT '\d{4}-\d{1,2}-\d{1,2} \d{1,2}:\d{1,2}:\d{1,2}(\.\d{1,6})?'/, "DEFAULT '#{datestring}'")
+      elsif options[:force_datetime_default_format] == true
+        # alternatively only cut out miliseconds if they're present
+        date_regexp = /DEFAULT '(\d{4}-\d{1,2}-\d{1,2} \d{1,2}:\d{1,2}:\d{1,2})(\.\d{1,6})?'/m
+        dump.scan(date_regexp).each do |date|
+          dump.gsub!(/DEFAULT '#{date.join}'/, "DEFAULT '#{date[0]}'")
+        end
+      end
     end
 
     def order_column_definitions(source)

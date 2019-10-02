@@ -87,6 +87,28 @@ INSERT INTO "schema_migrations" (version) VALUES
 ;
 ```
 
+You can also deal with default dates in the structure file if they're the common source of merge conflicts - this usually happens when using `DateTime.current` as a default and having your team run the migrations at different times.
+
+You can set the `force_datetime_default_format` option to a `Time` object like so:
+
+```ruby
+Rails.application.configure do
+  config.activerecord_clean_db_structure.force_datetime_default_format = Time.new(2019, 5, 6, 16, 44, 22)
+end
+```
+
+And it will set every date default to the passed date.
+
+Alternatively, you can set the `force_datetime_default_format` option to `true`:
+
+```ruby
+Rails.application.configure do
+  config.activerecord_clean_db_structure.force_datetime_default_format = true
+end
+```
+
+Which will only cut out the miliseconds from every datetime default.
+
 ## Authors
 
 * [Lukas Fittl](https://github.com/lfittl)
