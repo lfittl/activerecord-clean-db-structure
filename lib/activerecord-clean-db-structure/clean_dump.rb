@@ -144,7 +144,7 @@ module ActiveRecordCleanDbStructure
       columns = []
 
       source.each_line do |source_line|
-        if source_line.start_with?("CREATE TABLE")
+        if source_line.start_with?("CREATE TABLE") && (source_line.split(' ') & (options[:ignored_tables] || [])).none?
           inside_table = true
           columns = []
           result << source_line
