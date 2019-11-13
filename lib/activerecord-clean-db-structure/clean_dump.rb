@@ -129,49 +129,22 @@ module ActiveRecordCleanDbStructure
       dump.gsub!(/\n{2,}/m, "\n\n")
 
       if options[:order_column_definitions] == true
-        dump.replace(order_column_definitions(dump))
+        order_column_definitions
       end
-    end
-
-    def order_column_definitions(source)
-      result = []
-
-      parse_column_name = ->(line) { line.match(/^    "?([^" ]+)/)[1] }
-      with_column_separator = ->(line) { line.sub(/,?\n$/, ",\n") }
-      without_column_separator = ->(line) { line.sub(/,\n$/, "\n") }
-
-      inside_table = false
-      columns = []
-
-      source.each_line do |source_line|
-        if source_line.start_with?("CREATE TABLE")
-          inside_table = true
-          columns = []
-          result << source_line
-        elsif source_line.start_with?(");")
-          if inside_table
-            inside_table = false
-            columns.sort_by!(&:first)
-
-            columns[0..-2].each do |_, line|
-              result << with_column_separator[line]
-            end
-
-            result << without_column_separator[columns.last[1]]
-          end
-
-          result << source_line
-        elsif inside_table
-          columns << [parse_column_name[source_line], source_line]
-        else
-          result << source_line
-        end
-      end
-
-      result.join
     end
 
     private
+
+    # Orders the columns definitions alphabetically
+    # - keeps the columns at the top and places the constraints at the bottom.
+    def order_column_definitions
+      dump.gsub!(/^(?<table>CREATE TABLE .+?\(\n)(?<columns>.+?)(?=\n\);$)/m) do
+        [
+          $~[:table],
+          $~[:columns].split(",\n").sort.partition { |column| !column.match?(/\A *CONSTRAINT/) }.flatten.join(",\n")
+        ].join
+      end
+    end
 
     # Cleanup of schema_migrations values to prevent merge conflicts:
     # - sorts all values chronological
