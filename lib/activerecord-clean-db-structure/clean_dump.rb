@@ -127,6 +127,8 @@ module ActiveRecordCleanDbStructure
 
       # Reduce 2+ lines of whitespace to one line of whitespace
       dump.gsub!(/\n{2,}/m, "\n\n")
+      # End the file with a single end-of-line character
+      dump.sub!(/\n*\z/m, "\n")
 
       if options[:order_column_definitions] == true
         order_column_definitions
