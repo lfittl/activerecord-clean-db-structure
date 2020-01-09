@@ -138,13 +138,19 @@ module ActiveRecordCleanDbStructure
     private
 
     # Orders the columns definitions alphabetically
+    # - ignores quotes which surround column names that are equal to reserved PostgreSQL names.
     # - keeps the columns at the top and places the constraints at the bottom.
     def order_column_definitions
       dump.gsub!(/^(?<table>CREATE TABLE .+?\(\n)(?<columns>.+?)(?=\n\);$)/m) do
-        [
-          $~[:table],
-          $~[:columns].split(",\n").sort.partition { |column| !column.match?(/\A *CONSTRAINT/) }.flatten.join(",\n")
-        ].join
+        columns =
+          $~[:columns]
+          .split(",\n")
+          .sort_by { |column| column[/[^ "]+/] }
+          .partition { |column| !column.match?(/\A *CONSTRAINT/) }
+          .flatten
+          .join(",\n")
+
+        [$~[:table], columns].join
       end
     end
 
