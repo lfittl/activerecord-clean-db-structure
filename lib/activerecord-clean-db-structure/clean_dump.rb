@@ -142,6 +142,7 @@ module ActiveRecordCleanDbStructure
     # - keeps the columns at the top and places the constraints at the bottom.
     def order_column_definitions
       dump.gsub!(/^(?<table>CREATE TABLE .+?\(\n)(?<columns>.+?)(?=\n\);$)/m) do
+        table = $~[:table]
         columns =
           $~[:columns]
           .split(",\n")
@@ -150,7 +151,7 @@ module ActiveRecordCleanDbStructure
           .flatten
           .join(",\n")
 
-        [$~[:table], columns].join
+        [table, columns].join
       end
     end
 
