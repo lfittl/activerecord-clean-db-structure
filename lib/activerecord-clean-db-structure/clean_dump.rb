@@ -38,21 +38,10 @@ module ActiveRecordCleanDbStructure
       # Remove useless comment lines
       dump.gsub!(/^--$/, '')
 
+      # Reduce noise for id fields by making them (BIG)SERIAL instead of integer+sequence stuff
       unless options[:ignore_ids] == true
-        # Reduce noise for id fields by making them SERIAL instead of integer+sequence stuff
-        #
-        # This is a bit optimistic, but works as long as you don't have an id field thats not a sequence/uuid
-        dump.gsub!(/^    id integer NOT NULL(,)?$/, '    id SERIAL PRIMARY KEY\1')
-        dump.gsub!(/^    id bigint NOT NULL(,)?$/, '    id BIGSERIAL PRIMARY KEY\1')
-        dump.gsub!(/^    id uuid DEFAULT ([\w_]+\.)?uuid_generate_v4\(\) NOT NULL(,)?$/, '    id uuid DEFAULT \1uuid_generate_v4() PRIMARY KEY\2')
-        dump.gsub!(/^    id uuid DEFAULT ([\w_]+\.)?gen_random_uuid\(\) NOT NULL(,)?$/, '    id uuid DEFAULT \1gen_random_uuid() PRIMARY KEY\2')
-        dump.gsub!(/^CREATE SEQUENCE [\w\.]+_id_seq\s+(AS integer\s+)?START WITH 1\s+INCREMENT BY 1\s+NO MINVALUE\s+NO MAXVALUE\s+CACHE 1;$/, '')
-        dump.gsub!(/^ALTER SEQUENCE [\w\.]+_id_seq OWNED BY .*;$/, '')
-        dump.gsub!(/^ALTER TABLE ONLY [\w\.]+ ALTER COLUMN id SET DEFAULT nextval\('[\w\.]+_id_seq'::regclass\);$/, '')
-        dump.gsub!(/^ALTER TABLE ONLY [\w\.]+\s+ADD CONSTRAINT [\w\.]+_pkey PRIMARY KEY \(id\);$/, '')
-        dump.gsub!(/^-- Name: (\w+\s+)?id; Type: DEFAULT$/, '')
-        dump.gsub!(/^-- .*_id_seq; Type: SEQUENCE.*/, '')
-        dump.gsub!(/^-- Name: (\w+\s+)?\w+_pkey; Type: CONSTRAINT$/, '')
+        sequences_cleanup
+        primary_keys_cleanup
       end
 
       # Remove inherited tables
@@ -172,6 +161,40 @@ module ActiveRecordCleanDbStructure
     end
 
     private
+
+    # Reduce noise for id fields by making them (BIG)SERIAL instead of integer+sequence stuff
+    #
+    # WARN: might add the (BIG)SERIAL property to columns for which no sequence was originally defined.
+    # NOTE: does not work work for columns with a name other than 'id'
+    # NOTE: does not work for SMALLSERIAL
+    def sequences_cleanup
+      dump.gsub!(/^    id integer NOT NULL(,)?$/, '    id SERIAL\1')
+      dump.gsub!(/^    id bigint NOT NULL(,)?$/, '    id BIGSERIAL\1')
+      dump.gsub!(/^CREATE SEQUENCE [\w\.]+_id_seq\s+(AS integer\s+)?START WITH 1\s+INCREMENT BY 1\s+NO MINVALUE\s+NO MAXVALUE\s+CACHE 1;$/, '')
+      dump.gsub!(/^ALTER SEQUENCE [\w\.]+_id_seq OWNED BY .*;$/, '')
+      dump.gsub!(/^ALTER TABLE ONLY [\w\.]+ ALTER COLUMN id SET DEFAULT nextval\('[\w\.]+_id_seq'::regclass\);$/, '')
+      dump.gsub!(/^-- Name: (\w+\s+)?id; Type: DEFAULT$/, '')
+      dump.gsub!(/^-- .*_id_seq; Type: SEQUENCE.*/, '')
+    end
+
+    # Moves the separate primary key statements to the create table statements.
+    def primary_keys_cleanup
+      primary_keys = []
+
+      # Removes the ADD CONSTRAINT statements for primary keys and stores the info of which statements have been removed.
+      dump.gsub!(/^-- Name: [\w\s]+?(?<pkey>\w+_pkey); Type: CONSTRAINT[\s-]+ALTER TABLE ONLY (?<table>[\w.]+)\s+ADD CONSTRAINT \k<pkey> PRIMARY KEY \((?<column>[^,\)]+)\);$/) do
+        primary_keys.push([$LAST_MATCH_INFO[:table], $LAST_MATCH_INFO[:column]])
+
+        ''
+      end
+
+      # Adds the PRIMARY KEY property to each column for which it's statement has just been removed.
+      primary_keys.each do |table, column|
+        dump.gsub!(/^(?<statement>CREATE TABLE #{table} \(.*\s+#{column}\s+[^,]+)/) do
+          "#{$LAST_MATCH_INFO[:statement].remove(/ NOT NULL\z/)} PRIMARY KEY"
+        end
+      end
+    end
 
     # Cleanup of schema_migrations values to prevent merge conflicts:
     # - sorts all values chronological
