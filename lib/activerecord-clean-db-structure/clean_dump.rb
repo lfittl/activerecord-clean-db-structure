@@ -135,7 +135,7 @@ module ActiveRecordCleanDbStructure
         columns =
           $~[:columns]
           .split(",\n")
-          .sort_by { |column| column[/[^ "]+/] }
+          .sort_by { |column| column.delete('"') }
           .partition { |column| !column.match?(/\A *CONSTRAINT/) }
           .flatten
           .join(",\n")
