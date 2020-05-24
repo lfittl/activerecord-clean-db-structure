@@ -22,7 +22,7 @@ GEM
     i18n (1.6.0)
       concurrent-ruby (~> 1.0)
     minitest (5.11.3)
-    rake (0.9.6)
+    rake (13.0.1)
     thread_safe (0.3.6)
     tzinfo (1.2.5)
       thread_safe (~> 0.1)
@@ -33,7 +33,7 @@ PLATFORMS
 
 DEPENDENCIES
   activerecord-clean-db-structure!
-  rake (~> 0)
+  rake (~> 13)
 
 BUNDLED WITH
    1.17.3
