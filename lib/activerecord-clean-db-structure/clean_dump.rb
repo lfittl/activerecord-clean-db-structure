@@ -190,7 +190,7 @@ module ActiveRecordCleanDbStructure
 
       # Adds the PRIMARY KEY property to each column for which it's statement has just been removed.
       primary_keys.each do |table, column|
-        dump.gsub!(/^(?<statement>CREATE TABLE #{table} \(.*\s+#{column}\s+[^,]+)/) do
+        dump.gsub!(/^(?<statement>CREATE TABLE #{table} \(.*\s+#{column}\s+[^,\n]+)/) do
           "#{$LAST_MATCH_INFO[:statement].remove(/ NOT NULL\z/)} PRIMARY KEY"
         end
       end
