@@ -114,14 +114,13 @@ module ActiveRecordCleanDbStructure
         end
       end
 
+      move_unique_constraints if options[:move_unique_constraints_to_tables] == true
+      order_column_definitions if options[:order_column_definitions] == true
+
       # Reduce 2+ lines of whitespace to one line of whitespace
       dump.gsub!(/\n{2,}/m, "\n\n")
       # End the file with a single end-of-line character
       dump.sub!(/\n*\z/m, "\n")
-
-      if options[:order_column_definitions] == true
-        order_column_definitions
-      end
     end
 
     private
@@ -164,7 +163,7 @@ module ActiveRecordCleanDbStructure
       primary_keys = []
 
       # Removes the ADD CONSTRAINT statements for primary keys and stores the info of which statements have been removed.
-      dump.gsub!(/^-- Name: [\w\s]+?(?<pkey>\w+_pkey); Type: CONSTRAINT[\s-]+ALTER TABLE ONLY (?<table>[\w.]+)\s+ADD CONSTRAINT \k<pkey> PRIMARY KEY \((?<column>[^,\)]+)\);$/) do
+      dump.gsub!(/^-- Name: [\w\s]+?(?<name>\w+_pkey); Type: CONSTRAINT[\s-]+ALTER TABLE ONLY (?<table>[\w.]+)\s+ADD CONSTRAINT \k<name> PRIMARY KEY \((?<column>[^,\)]+)\);$/) do
         primary_keys.push([$LAST_MATCH_INFO[:table], $LAST_MATCH_INFO[:column]])
 
         ''
@@ -174,6 +173,26 @@ module ActiveRecordCleanDbStructure
       primary_keys.each do |table, column|
         dump.gsub!(/^(?<statement>CREATE TABLE #{table} \(.*?\s+#{column}\s+[^,\n]+)/m) do
           "#{$LAST_MATCH_INFO[:statement].remove(/ NOT NULL\z/)} PRIMARY KEY"
+        end
+      end
+    end
+
+    # Moves the separate unique constraint statements to the create table statements.
+    def move_unique_constraints
+      unique_constraints = []
+
+      # Removes the ADD CONSTRAINT statements and stores their info.
+      dump.gsub!(/^-- Name: [\w\s]+?(?<name>\w+); Type: CONSTRAINT[\s-]+ALTER TABLE ONLY (?<table>[\w.]+)\s+ADD CONSTRAINT \k<name> UNIQUE (?<columns>[^;]+);$/) do
+        unique_constraints.push([$LAST_MATCH_INFO[:table], $LAST_MATCH_INFO[:name], $LAST_MATCH_INFO[:columns]])
+
+        ''
+      end
+
+      # Adds the UNIQUE contstraint to the table definitions.
+      unique_constraints.each do |table, name, columns|
+        dump.gsub!(/^(?<statement>CREATE TABLE #{table} \(.*?\);)/m) do
+          constraint = "CONSTRAINT #{name} UNIQUE #{columns}"
+          "#{$LAST_MATCH_INFO[:statement].sub(/\n\);\z/, ",\n    #{constraint}\n);")}"
         end
       end
     end

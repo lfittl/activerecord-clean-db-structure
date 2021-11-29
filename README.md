@@ -69,13 +69,22 @@ Rails.application.configure do
 end
 ```
 
-You can have the schema_migrations values reorganized to prevent merge conflicts by setting `order_schema_migrations_values`:
+You can have the schema_migrations values reorganized to reduce the number of merge conflicts by setting `order_schema_migrations_values`:
 
 ```ruby
 Rails.application.configure do
   config.activerecord_clean_db_structure.order_schema_migrations_values = true
 end
 ```
+
+You can have the unique constraints moved to the create table definitions with `move_unique_constraints_to_tables`:
+
+```ruby
+Rails.application.configure do
+  config.activerecord_clean_db_structure.move_unique_constraints_to_tables = true
+end
+```
+
 
 When it is enabled the values are ordered chronological and the semicolon is placed on a separate line:
 
