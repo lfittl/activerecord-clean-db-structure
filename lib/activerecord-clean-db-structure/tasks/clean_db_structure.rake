@@ -1,6 +1,6 @@
 require 'activerecord-clean-db-structure/clean_dump'
 
-Rake::Task['db:structure:dump'].enhance do
+Rake::Task[ActiveRecord.version >= Gem::Version.new('6.1') ? 'db:schema:dump' : 'db:structure:dump'].enhance do
   filenames = []
   filenames << ENV['DB_STRUCTURE'] if ENV.key?('DB_STRUCTURE')
 
