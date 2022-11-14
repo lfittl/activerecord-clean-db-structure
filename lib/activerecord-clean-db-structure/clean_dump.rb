@@ -21,10 +21,6 @@ module ActiveRecordCleanDbStructure
       dump.gsub!(/^SET xmloption = content;\n/m, '') # 12
       dump.gsub!(/^SET default_table_access_method = heap;\n/m, '') # 12
 
-      # Remove pg_stat_statements extension (its not relevant to the code)
-      dump.gsub!(/^CREATE EXTENSION IF NOT EXISTS pg_stat_statements.*/, '')
-      dump.gsub!(/^-- Name: (EXTENSION )?pg_stat_statements;.*/, '')
-
       # Remove pg_buffercache extension (its not relevant to the code)
       dump.gsub!(/^CREATE EXTENSION IF NOT EXISTS pg_buffercache.*/, '')
       dump.gsub!(/^-- Name: (EXTENSION )?pg_buffercache;.*/, '')
