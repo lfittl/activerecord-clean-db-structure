@@ -99,14 +99,19 @@ module ActiveRecordCleanDbStructure
         # Extract indexes, remove comments and place them just after the respective tables
         indexes =
           dump
-            .scan(/^CREATE.+INDEX.+ON.+\n/)
-            .group_by { |line| line.scan(/\b\w+\.\w+\b/).first }
-            .transform_values(&:join)
+          .scan(/^CREATE.+INDEX.+ON.+\n/)
+          .group_by { |line| line.scan(/\b\w+\.\w+\b/).first }
+          .transform_values(&:join)
 
         dump.gsub!(/^CREATE( UNIQUE)? INDEX \w+ ON .+\n+/, '')
         dump.gsub!(/^-- Name: \w+; Type: INDEX\n+/, '')
         indexes.each do |table, indexes_for_table|
-          dump.gsub!(/^(CREATE TABLE #{table}\b(:?[^;\n]*\n)+\);\n)/) { $1 + "\n" + indexes_for_table }
+          dump.gsub!(/^(CREATE TABLE #{table}\b(:?[^;\n]*\n)+\);\n)/) do
+            ::Regexp.last_match(1) + "\n" + indexes_for_table
+          end
+          dump.gsub!(/^(CREATE (?:MATERIALIZED\s)?VIEW #{table}\b.*?;\n)/m) do
+            ::Regexp.last_match(1) + "\n" + indexes_for_table
+          end
         end
       end
 
