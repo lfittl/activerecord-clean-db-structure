@@ -9,7 +9,8 @@ Rake::Task[ActiveRecord.version >= Gem::Version.new('6.1') ? 'db:schema:dump' : 
     databases = ActiveRecord::Tasks::DatabaseTasks.setup_initial_database_yaml
     ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |spec_name|
       Rails.application.config.paths['db'].each do |path|
-        filenames << File.join(path, spec_name + '_structure.sql')
+        filename = spec_name == 'primary' ? 'structure.sql' : spec_name + '_structure.sql'
+        filenames << File.join(path, filename)
       end
     end
   end
