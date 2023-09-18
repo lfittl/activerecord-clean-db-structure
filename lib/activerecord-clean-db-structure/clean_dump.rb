@@ -106,13 +106,12 @@ module ActiveRecordCleanDbStructure
         dump.gsub!(/^CREATE( UNIQUE)? INDEX \w+ ON .+\n+/, '')
         dump.gsub!(/^-- Name: \w+; Type: INDEX\n+/, '')
         indexes.each do |table, indexes_for_table|
-          dump.gsub!(/^(CREATE TABLE #{table}\b(:?[^;\n]*\n)+\);\n)/) do
-            ::Regexp.last_match(1) + "\n" + indexes_for_table
+          dump.gsub!(/^(CREATE TABLE #{table}\b(:?[^;\n]*\n)+)(\);\n|PARTITION.+\);\n)/) do |match|
+            match + "\n" + indexes_for_table
           end
-          dump.gsub!(/^(CREATE (?:MATERIALIZED\s)?VIEW #{table}\b.*?;\n)/m) do
-            ::Regexp.last_match(1) + "\n" + indexes_for_table
+          dump.gsub!(/^(CREATE (?:MATERIALIZED\s)?VIEW #{table}\b.*?;\n)/m) do |match|
+            match + "\n" + indexes_for_table
           end
-        end
       end
 
       move_unique_constraints if options[:move_unique_constraints_to_tables] == true
@@ -130,7 +129,7 @@ module ActiveRecordCleanDbStructure
     # - ignores quotes which surround column names that are equal to reserved PostgreSQL names.
     # - keeps the columns at the top and places the constraints at the bottom.
     def order_column_definitions
-      dump.gsub!(/^(?<table>CREATE TABLE .+?\(\n)(?<columns>.+?)(?=\n\);$)/m) do
+      dump.gsub!(/^(?<table>CREATE TABLE .+?\(\n)(?<columns>.+?)(?=\n\);$|\n\)\nPARTITION)/m) do
         table = $~[:table]
         columns =
           $~[:columns]
