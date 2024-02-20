@@ -112,6 +112,7 @@ module ActiveRecordCleanDbStructure
           dump.gsub!(/^(CREATE (?:MATERIALIZED\s)?VIEW #{table}\b.*?;\n)/m) do |match|
             match + "\n" + indexes_for_table
           end
+        end
       end
 
       move_unique_constraints if options[:move_unique_constraints_to_tables] == true
