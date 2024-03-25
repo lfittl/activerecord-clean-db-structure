@@ -214,7 +214,7 @@ module ActiveRecordCleanDbStructure
     # - places the semicolon on a separate last line
     def schema_migrations_cleanup
       # Read all schema_migrations values from the dump.
-      values = dump.scan(/^(\('\d{14}'\))[,;]\n/).flatten.sort
+      values = dump.scan(/^(\(\'\d{14}\'\))[,;]\n/).flatten.sort
 
       # Replace the schema_migrations values.
       dump.sub!(
