@@ -1,7 +1,6 @@
 require 'active_support/all'
 
 module ActiveRecordCleanDbStructure
-
   class CleanDump
     attr_reader :dump, :options
 
@@ -86,7 +85,9 @@ module ActiveRecordCleanDbStructure
         end
         dump.gsub!(index_regexp, '')
 
-        dump.gsub!(/-- Name: #{partitioned_table}_pkey; Type: INDEX ATTACH\n\n[^;]+?ATTACH PARTITION ([\w_]+\.)?#{partitioned_table}_pkey;/, '')
+        dump.gsub!(
+          /-- Name: #{partitioned_table}_pkey; Type: INDEX ATTACH\n\n[^;]+?ATTACH PARTITION ([\w_]+\.)?#{partitioned_table}_pkey;/, ''
+        )
       end
       # This is mostly done to allow restoring Postgres 11 output on Postgres 10
       dump.gsub!(/CREATE INDEX ([\w_]+) ON ONLY/, 'CREATE INDEX \\1 ON')
@@ -155,7 +156,9 @@ module ActiveRecordCleanDbStructure
     def sequences_cleanup
       dump.gsub!(/^    id integer NOT NULL(,)?$/, '    id SERIAL\1')
       dump.gsub!(/^    id bigint NOT NULL(,)?$/, '    id BIGSERIAL\1')
-      dump.gsub!(/^CREATE SEQUENCE [\w\.]+_id_seq\s+(AS integer\s+)?START WITH 1\s+INCREMENT BY 1\s+NO MINVALUE\s+NO MAXVALUE\s+CACHE 1;$/, '')
+      dump.gsub!(
+        /^CREATE SEQUENCE [\w\.]+_id_seq\s+(AS integer\s+)?START WITH 1\s+INCREMENT BY 1\s+NO MINVALUE\s+NO MAXVALUE\s+CACHE 1;$/, ''
+      )
       dump.gsub!(/^ALTER SEQUENCE [\w\.]+_id_seq OWNED BY .*;$/, '')
       dump.gsub!(/^ALTER TABLE ONLY [\w\.]+ ALTER COLUMN id SET DEFAULT nextval\('[\w\.]+_id_seq'::regclass\);$/, '')
       dump.gsub!(/^-- Name: (\w+\s+)?id; Type: DEFAULT$/, '')
@@ -175,7 +178,6 @@ module ActiveRecordCleanDbStructure
 
       # Adds the PRIMARY KEY property to each column for which it's statement has just been removed.
       primary_keys.each do |table, column|
-        binding.pry
         dump.gsub!(/^(?<statement>CREATE TABLE #{table} \(.*?\s+#{column}\s+[^,\n]+)/m) do
           "#{$LAST_MATCH_INFO[:statement].remove(/ NOT NULL\z/)} PRIMARY KEY"
         end
@@ -208,7 +210,7 @@ module ActiveRecordCleanDbStructure
     # - places the semicolon on a separate last line
     def schema_migrations_cleanup
       # Read all schema_migrations values from the dump.
-      values = dump.scan(/^(\(\'\d{14}\'\))[,;]\n/).flatten.sort
+      values = dump.scan(/^(\('\d{14}'\))[,;]\n/).flatten.sort
 
       # Replace the schema_migrations values.
       dump.sub!(
