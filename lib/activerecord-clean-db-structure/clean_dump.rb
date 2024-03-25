@@ -165,6 +165,7 @@ module ActiveRecordCleanDbStructure
     # Moves the separate primary key statements to the create table statements.
     def primary_keys_cleanup
       primary_keys = []
+
       # Removes the ADD CONSTRAINT statements for primary keys and stores the info of which statements have been removed.
       dump.gsub!(/^-- Name: [\w\s]+?(?<name>\w+_pkey); Type: CONSTRAINT[\s-]+ALTER TABLE ONLY (?<table>[\w.]+)\s+ADD CONSTRAINT \k<name> PRIMARY KEY \((?<column>[^,\)]+)\);$/) do
         primary_keys.push([$LAST_MATCH_INFO[:table], $LAST_MATCH_INFO[:column]])
@@ -174,8 +175,8 @@ module ActiveRecordCleanDbStructure
 
       # Adds the PRIMARY KEY property to each column for which it's statement has just been removed.
       primary_keys.each do |table, column|
+        binding.pry
         dump.gsub!(/^(?<statement>CREATE TABLE #{table} \(.*?\s+#{column}\s+[^,\n]+)/m) do
-          binding.pry
           "#{$LAST_MATCH_INFO[:statement].remove(/ NOT NULL\z/)} PRIMARY KEY"
         end
       end
