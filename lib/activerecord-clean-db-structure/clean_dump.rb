@@ -203,7 +203,7 @@ module ActiveRecordCleanDbStructure
       unique_constraints.each do |table, name, columns|
         dump.gsub!(/^(?<statement>CREATE TABLE #{table} \(.*?\);)/m) do
           constraint = "CONSTRAINT #{name} UNIQUE #{columns}"
-          "#{$LAST_MATCH_INFO[:statement].sub(/\n\);\z/, ",\n    #{constraint}\n);")}"
+          $LAST_MATCH_INFO[:statement].sub(/\n\);\z/, ",\n    #{constraint}\n);").to_s
         end
       end
     end
@@ -214,7 +214,7 @@ module ActiveRecordCleanDbStructure
     # - places the semicolon on a separate last line
     def schema_migrations_cleanup
       # Read all schema_migrations values from the dump.
-      values = dump.scan(/^(\(\'\d{14}\'\))[,;]\n/).flatten.sort
+      values = dump.scan(/^(\('\d{14}'\))[,;]\n/).flatten.sort
 
       # Replace the schema_migrations values.
       dump.sub!(
