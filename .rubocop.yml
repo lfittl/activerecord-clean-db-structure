@@ -8,3 +8,51 @@ AllCops:
   TargetRubyVersion: 3.2
   TargetRailsVersion: 7.1
   NewCops: enable
+
+Layout/LineLength:
+  Max: 120
+
+Layout/EndAlignment:
+  EnforcedStyleAlignWith: start_of_line
+
+Layout/FirstHashElementIndentation:
+  EnforcedStyle: consistent
+
+Style/SymbolArray:
+  EnforcedStyle: brackets
+
+Style/WordArray:
+  EnforcedStyle: brackets
+
+########### METRICS ###############
+
+Metrics/AbcSize:
+  Max: 50
+
+Metrics/ClassLength:
+  Enabled: false
+
+Metrics/CyclomaticComplexity:
+  Enabled: false
+
+Metrics/PerceivedComplexity:
+  Enabled: false
+
+Metrics/MethodLength:
+  CountAsOne:
+    - array
+    - hash
+    - heredoc
+  Max: 30
+
+Metrics/BlockLength:
+  Enabled: true
+  Exclude:
+    - 'test/**/*'
+
+########### STYLE ###############
+
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  Exclude:
+    - 'test/**/*'

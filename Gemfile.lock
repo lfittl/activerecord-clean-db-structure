@@ -85,7 +85,7 @@ DEPENDENCIES
   activerecord-clean-db-structure!
   minitest
   pry
-  rake (~> 13)
+  rake
   rubocop
   rubocop-minitest
   rubocop-packaging

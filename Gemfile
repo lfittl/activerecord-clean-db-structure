@@ -2,6 +2,8 @@ source 'https://rubygems.org'
 
 gemspec
 
+gem 'rake'
+
 gem 'rubocop'
 gem 'rubocop-minitest'
 gem 'rubocop-packaging'
