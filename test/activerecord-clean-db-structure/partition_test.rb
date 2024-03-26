@@ -5,6 +5,8 @@ class PartitionTest < Minitest::Spec
   described_class = ActiveRecordCleanDbStructure::CleanDump
 
   describe 'Keep storage tables partitions' do
+    options = { keep_partitions: ['storage_tables_blobs_partition_'] }
+
     dump = <<~SQL
       --
       -- Name: storage_tables_blobs; Type: TABLE; Schema: public; Owner: -
@@ -42,7 +44,7 @@ class PartitionTest < Minitest::Spec
     SQL
 
     it 'refactors the partitioned table' do
-      assert_equal <<~SQL, described_class.new(dump).run
+      assert_equal <<~SQL, described_class.new(dump, options).run
 
         -- Name: storage_tables_blobs; Type: TABLE
 

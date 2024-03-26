@@ -70,7 +70,8 @@ module ActiveRecordCleanDbStructure
       partitioned_tables.each do |partitioned_table|
         _partitioned_schema_name, partitioned_table_name_only = partitioned_table.split('.', 2)
 
-        next if partitioned_table_name_only.starts_with?('storage_tables_blobs_partition_')
+        partitions_to_keep = options[:keep_partitions] ||= []
+        next if partitions_to_keep.any? { |name| partitioned_table_name_only.starts_with?(name) }
 
         dump.gsub!(/-- Name: #{partitioned_table_name_only}; Type: TABLE/, '')
 
