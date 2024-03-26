@@ -1,3 +1,5 @@
+require 'active_support/all'
+
 module ActiveRecordCleanDbStructure
   class CleanDump
     attr_reader :dump, :options
@@ -66,8 +68,13 @@ module ActiveRecordCleanDbStructure
       partitioned_tables += dump.scan(partitioned_tables_regexp2).map(&:first)
 
       partitioned_tables.each do |partitioned_table|
-        partitioned_schema_name, partitioned_table_name_only = partitioned_table.split('.', 2)
+        _partitioned_schema_name, partitioned_table_name_only = partitioned_table.split('.', 2)
+
+        partitions_to_keep = options[:keep_partitions] ||= []
+        next if partitions_to_keep.any? { |name| partitioned_table_name_only.starts_with?(name) }
+
         dump.gsub!(/-- Name: #{partitioned_table_name_only}; Type: TABLE/, '')
+
         dump.gsub!(/CREATE TABLE #{partitioned_table} \([^;]+;/m, '')
         dump.gsub!(/ALTER TABLE ONLY ([\w_\.]+) ATTACH PARTITION #{partitioned_table}[^;]+;/m, '')
 
@@ -83,7 +90,9 @@ module ActiveRecordCleanDbStructure
         end
         dump.gsub!(index_regexp, '')
 
-        dump.gsub!(/-- Name: #{partitioned_table}_pkey; Type: INDEX ATTACH\n\n[^;]+?ATTACH PARTITION ([\w_]+\.)?#{partitioned_table}_pkey;/, '')
+        dump.gsub!(
+          /-- Name: #{partitioned_table}_pkey; Type: INDEX ATTACH\n\n[^;]+?ATTACH PARTITION ([\w_]+\.)?#{partitioned_table}_pkey;/, ''
+        )
       end
       # This is mostly done to allow restoring Postgres 11 output on Postgres 10
       dump.gsub!(/CREATE INDEX ([\w_]+) ON ONLY/, 'CREATE INDEX \\1 ON')
@@ -130,10 +139,10 @@ module ActiveRecordCleanDbStructure
     # - ignores quotes which surround column names that are equal to reserved PostgreSQL names.
     # - keeps the columns at the top and places the constraints at the bottom.
     def order_column_definitions
-      dump.gsub!(/^(?<table>CREATE TABLE .+?\(\n)(?<columns>.+?)(?=\n\);$|\n\)\nPARTITION)/m) do
-        table = $~[:table]
+      dump.gsub!(/^(?<table>CREATE TABLE .+?\(\n)(?<columns>.+?)(?=\n(\);|\)\nPARTITION.+\);)$)/m) do
+        table = $LAST_MATCH_INFO[:table]
         columns =
-          $~[:columns]
+          $LAST_MATCH_INFO[:columns]
           .split(",\n")
           .sort_by { |column| column.delete('"') }
           .partition { |column| !column.match?(/\A *CONSTRAINT/) }
@@ -152,7 +161,9 @@ module ActiveRecordCleanDbStructure
     def sequences_cleanup
       dump.gsub!(/^    id integer NOT NULL(,)?$/, '    id SERIAL\1')
       dump.gsub!(/^    id bigint NOT NULL(,)?$/, '    id BIGSERIAL\1')
-      dump.gsub!(/^CREATE SEQUENCE [\w\.]+_id_seq\s+(AS integer\s+)?START WITH 1\s+INCREMENT BY 1\s+NO MINVALUE\s+NO MAXVALUE\s+CACHE 1;$/, '')
+      dump.gsub!(
+        /^CREATE SEQUENCE [\w\.]+_id_seq\s+(AS integer\s+)?START WITH 1\s+INCREMENT BY 1\s+NO MINVALUE\s+NO MAXVALUE\s+CACHE 1;$/, ''
+      )
       dump.gsub!(/^ALTER SEQUENCE [\w\.]+_id_seq OWNED BY .*;$/, '')
       dump.gsub!(/^ALTER TABLE ONLY [\w\.]+ ALTER COLUMN id SET DEFAULT nextval\('[\w\.]+_id_seq'::regclass\);$/, '')
       dump.gsub!(/^-- Name: (\w+\s+)?id; Type: DEFAULT$/, '')
@@ -193,7 +204,7 @@ module ActiveRecordCleanDbStructure
       unique_constraints.each do |table, name, columns|
         dump.gsub!(/^(?<statement>CREATE TABLE #{table} \(.*?\);)/m) do
           constraint = "CONSTRAINT #{name} UNIQUE #{columns}"
-          "#{$LAST_MATCH_INFO[:statement].sub(/\n\);\z/, ",\n    #{constraint}\n);")}"
+          $LAST_MATCH_INFO[:statement].sub(/\n\);\z/, ",\n    #{constraint}\n);").to_s
         end
       end
     end
@@ -204,7 +215,7 @@ module ActiveRecordCleanDbStructure
     # - places the semicolon on a separate last line
     def schema_migrations_cleanup
       # Read all schema_migrations values from the dump.
-      values = dump.scan(/^(\(\'\d{14}\'\))[,;]\n/).flatten.sort
+      values = dump.scan(/^(\('\d{14}'\))[,;]\n/).flatten.sort
 
       # Replace the schema_migrations values.
       dump.sub!(
