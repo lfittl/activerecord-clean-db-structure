@@ -140,9 +140,9 @@ module ActiveRecordCleanDbStructure
     # - keeps the columns at the top and places the constraints at the bottom.
     def order_column_definitions
       dump.gsub!(/^(?<table>CREATE TABLE .+?\(\n)(?<columns>.+?)(?=\n(\);|\)\nPARTITION.+\);)$)/m) do
-        table = $~[:table]
+        table = $LAST_MATCH_INFO[:table]
         columns =
-          $~[:columns]
+          $LAST_MATCH_INFO[:columns]
           .split(",\n")
           .sort_by { |column| column.delete('"') }
           .partition { |column| !column.match?(/\A *CONSTRAINT/) }
