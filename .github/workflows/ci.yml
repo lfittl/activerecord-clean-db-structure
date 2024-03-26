@@ -1,0 +1,45 @@
+name: CI
+on:
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruby-version: ['3.2.2', '3.3']
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+          bundler-cache: true
+
+      - name: Build and test with minitest        
+        run: |
+          bundle exec rake test
+
+      # - uses: actions/upload-artifact@v3
+      #   name: Upload coverage
+      #   if: failure()
+      #   with:
+      #     name: Coverage
+      #     path: coverage
+
+  # lint:
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Setup Ruby
+  #       uses: ruby/setup-ruby@v1
+  #       with:
+  #         ruby-version: 3.2.2
+  #         bundler-cache: true
+
+  #     - name: Run Rubocop
+  #       run: |
+  #         bundle exec rubocop -c .rubocop.yml
