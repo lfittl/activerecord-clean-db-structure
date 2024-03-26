@@ -18,7 +18,7 @@ jobs:
           ruby-version: ${{ matrix.ruby-version }}
           bundler-cache: true
 
-      - name: Build and test with minitest        
+      - name: Build and test with minitest
         run: |
           bundle exec rake test
 
