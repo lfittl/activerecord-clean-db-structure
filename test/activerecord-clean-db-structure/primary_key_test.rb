@@ -90,8 +90,7 @@ class PrimaryKeyTest < Minitest::Spec
           content_type character varying,
           metadata jsonb
           PRIMARY KEY (checksum, partition_key)
-        )
-        PARTITION BY LIST (partition_key);
+        ) PARTITION BY LIST (partition_key);
 
         -- PostgreSQL database dump complete
       SQL
