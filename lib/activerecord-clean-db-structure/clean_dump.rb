@@ -40,6 +40,7 @@ module ActiveRecordCleanDbStructure
       unless options[:ignore_ids] == true
         sequences_cleanup
         primary_keys_cleanup
+        composite_primary_keys_cleanup
       end
 
       # Remove inherited tables
@@ -185,6 +186,27 @@ module ActiveRecordCleanDbStructure
       primary_keys.each do |table, column|
         dump.gsub!(/^(?<statement>CREATE TABLE #{table} \(.*?\s+#{column}\s+[^,\n]+)/m) do
           "#{$LAST_MATCH_INFO[:statement].remove(/ NOT NULL\z/)} PRIMARY KEY"
+        end
+      end
+    end
+
+    # Moves the separate primary key statements to the create table statements.
+    def composite_primary_keys_cleanup
+      primary_keys = []
+
+      # Removes the ADD CONSTRAINT statements for primary keys and stores the info of which statements have been removed.
+      dump.gsub!(/^-- Name: [\w\s]+?(?<name>\w+_pkey); Type: CONSTRAINT[\s-]+ALTER TABLE ONLY (?<table>[\w.]+)\s+ADD CONSTRAINT \k<name> PRIMARY KEY (?<columns>[^;]+);$/) do
+        primary_keys.push([$LAST_MATCH_INFO[:table], $LAST_MATCH_INFO[:columns]])
+
+        ''
+      end
+
+      # Adds the PRIMARY_KEYS contstraint to the table definitions.
+      primary_keys.each do |table, columns|
+        dump.gsub!(/^(?<table>CREATE TABLE #{table} .+?\(\n)(?<columns>.+?)(?=\n(\);|\)\nPARTITION.+\);)$)/m) do
+          binding.pry
+          constraint = "PRIMARY KEY #{columns}"
+          $LAST_MATCH_INFO[:statement].sub(/\n\);\z/, ",\n    #{constraint}\n);").to_s
         end
       end
     end

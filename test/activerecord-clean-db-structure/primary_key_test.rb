@@ -44,6 +44,10 @@ class PrimaryKeyTest < Minitest::Spec
   end
 
   describe 'Composite primary key on create table' do
+    options = {
+      move_unique_constraints_to_tables: true
+    }
+
     it "Doesn't add primary key to create table" do
       dump = <<~SQL
         --
@@ -73,7 +77,7 @@ class PrimaryKeyTest < Minitest::Spec
         --
       SQL
 
-      assert_equal <<~SQL, described_class.new(dump).run
+      assert_equal <<~SQL, described_class.new(dump, options).run
 
         -- Name: storage_tables_blobs; Type: TABLE
 
@@ -85,13 +89,9 @@ class PrimaryKeyTest < Minitest::Spec
           byte_size bigint NOT NULL,
           content_type character varying,
           metadata jsonb
+          PRIMARY KEY (checksum, partition_key)
         )
         PARTITION BY LIST (partition_key);
-
-        -- Name: storage_tables_blobs storage_tables_blobs_pkey; Type: CONSTRAINT
-
-        ALTER TABLE ONLY public.storage_tables_blobs
-          ADD CONSTRAINT storage_tables_blobs_pkey PRIMARY KEY (checksum, partition_key);
 
         -- PostgreSQL database dump complete
       SQL
