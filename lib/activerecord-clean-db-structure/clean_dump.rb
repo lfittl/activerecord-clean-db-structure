@@ -146,7 +146,7 @@ module ActiveRecordCleanDbStructure
           $LAST_MATCH_INFO[:columns]
           .split(",\n")
           .sort_by { |column| column.delete('"') }
-          .partition { |column| !column.match?(/\A *CONSTRAINT|PRIMARY KEY/) }
+          .partition { |column| !column.match?(/\ACONSTRAINT|PRIMARY KEY/) }
           .flatten
           .join(",\n")
 
