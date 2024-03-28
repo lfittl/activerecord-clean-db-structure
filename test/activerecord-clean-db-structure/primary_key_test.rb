@@ -47,7 +47,7 @@ class PrimaryKeyTest < Minitest::Spec
     options = {
       move_unique_constraints_to_tables: true,
       indexes_after_tables: true,
-      move_unique_constraints_to_tables: true,
+      order_column_definitions: true,
       keep_partitions: ['storage_tables']
     }
 
@@ -125,14 +125,14 @@ class PrimaryKeyTest < Minitest::Spec
         -- Name: storage_tables_blobs; Type: TABLE
 
         CREATE TABLE public.storage_tables_blobs (
-          partition_key character(1) NOT NULL,
-          checksum character(85) NOT NULL,
-          attachments_count_modified timestamp(6) with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+          PRIMARY KEY (checksum, partition_key),
           attachments_count integer DEFAULT 0 NOT NULL,
+          attachments_count_modified timestamp(6) with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
           byte_size bigint NOT NULL,
+          checksum character(85) NOT NULL,
           content_type character varying,
-          metadata jsonb
-          PRIMARY KEY (checksum, partition_key)
+          metadata jsonb,
+          partition_key character(1) NOT NULL
         )
         PARTITION BY LIST (partition_key);
 
@@ -141,14 +141,14 @@ class PrimaryKeyTest < Minitest::Spec
         -- Name: storage_tables_blobs_partition_0; Type: TABLE
 
         CREATE TABLE public.storage_tables_blobs_partition_0 (
-          partition_key character(1) NOT NULL,
-          checksum character(85) NOT NULL,
-          attachments_count_modified timestamp(6) with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+          PRIMARY KEY (checksum, partition_key),
           attachments_count integer DEFAULT 0 NOT NULL,
+          attachments_count_modified timestamp(6) with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
           byte_size bigint NOT NULL,
+          checksum character(85) NOT NULL,
           content_type character varying,
-          metadata jsonb
-          PRIMARY KEY (checksum, partition_key)
+          metadata jsonb,
+          partition_key character(1) NOT NULL
         );
 
         CREATE INDEX storage_tables_blobs_partition_0_checksum_idx ON public.storage_tables_blobs_partition_0 USING btree (checksum) WHERE (attachments_count = 0);
