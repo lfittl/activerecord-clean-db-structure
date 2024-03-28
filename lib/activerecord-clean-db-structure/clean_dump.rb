@@ -203,7 +203,7 @@ module ActiveRecordCleanDbStructure
 
       # Adds the PRIMARY_KEYS contstraint to the table definitions.
       primary_keys.each do |table, columns|
-        dump.gsub!(/^(CREATE TABLE #{table}\b(:?[^;\n]*\n)+)(\);\n|PARTITION.+\);\n)/) do
+        dump.gsub!(/^(CREATE TABLE #{table} (:?[^;\n]*\n)+)(\);\n|PARTITION.+\);\n)/) do
           constraint = "PRIMARY KEY #{columns}"
           $LAST_MATCH_INFO[1].sub(/\)\n\z/, "  #{constraint}\n) #{$LAST_MATCH_INFO[3]}")
         end
