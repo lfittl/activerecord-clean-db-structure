@@ -5,6 +5,10 @@ class PrimaryKeyTest < Minitest::Spec
   described_class = ActiveRecordCleanDbStructure::CleanDump
 
   describe 'Primary key on create table' do
+    options = {
+      order_column_definitions: true
+    }
+
     dump = <<~SQL
       --
       -- Name: users; Type: TABLE; Schema: public; Owner: -
@@ -12,7 +16,7 @@ class PrimaryKeyTest < Minitest::Spec
 
       CREATE TABLE public.users (
         id bigint NOT NULL,
-        name character varying NOT NULL,#{'        '}
+        name character varying NOT NULL,
         created_at timestamp(6) without time zone NOT NULL
       );
       --
@@ -28,14 +32,14 @@ class PrimaryKeyTest < Minitest::Spec
     SQL
 
     it 'Adds primary key to create table' do
-      assert_equal <<~SQL, described_class.new(dump).run
+      assert_equal <<~SQL, described_class.new(dump, options).run
 
         -- Name: users; Type: TABLE
 
         CREATE TABLE public.users (
+          created_at timestamp(6) without time zone NOT NULL,
           id bigint PRIMARY KEY,
-          name character varying NOT NULL,
-          created_at timestamp(6) without time zone NOT NULL
+          name character varying NOT NULL
         );
 
         -- PostgreSQL database dump complete
