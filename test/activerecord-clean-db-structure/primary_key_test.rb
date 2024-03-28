@@ -125,14 +125,14 @@ class PrimaryKeyTest < Minitest::Spec
         -- Name: storage_tables_blobs; Type: TABLE
 
         CREATE TABLE public.storage_tables_blobs (
-          PRIMARY KEY (checksum, partition_key),
           attachments_count integer DEFAULT 0 NOT NULL,
           attachments_count_modified timestamp(6) with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
           byte_size bigint NOT NULL,
           checksum character(85) NOT NULL,
           content_type character varying,
           metadata jsonb,
-          partition_key character(1) NOT NULL
+          partition_key character(1) NOT NULL,
+          PRIMARY KEY (checksum, partition_key)
         )
         PARTITION BY LIST (partition_key);
 
@@ -141,14 +141,14 @@ class PrimaryKeyTest < Minitest::Spec
         -- Name: storage_tables_blobs_partition_0; Type: TABLE
 
         CREATE TABLE public.storage_tables_blobs_partition_0 (
-          PRIMARY KEY (checksum, partition_key),
           attachments_count integer DEFAULT 0 NOT NULL,
           attachments_count_modified timestamp(6) with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
           byte_size bigint NOT NULL,
           checksum character(85) NOT NULL,
           content_type character varying,
           metadata jsonb,
-          partition_key character(1) NOT NULL
+          partition_key character(1) NOT NULL,
+          PRIMARY KEY (checksum, partition_key)
         );
 
         CREATE INDEX storage_tables_blobs_partition_0_checksum_idx ON public.storage_tables_blobs_partition_0 USING btree (checksum) WHERE (attachments_count = 0);
