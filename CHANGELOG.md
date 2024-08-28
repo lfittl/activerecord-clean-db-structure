@@ -4,6 +4,14 @@
 
 * ...
 
+## 0.4.1    2024-08-28
+
+* Fix Rake task name for 6.1+ [#32](https://github.com/lfittl/activerecord-clean-db-structure/pull/32)
+* Bump activesupport [#36](https://github.com/lfittl/activerecord-clean-db-structure/pull/36), [#35](https://github.com/lfittl/activerecord-clean-db-structure/pull/35)
+* Bump tzinfo [#29](https://github.com/lfittl/activerecord-clean-db-structure/pull/29)
+* Update rake [#30](https://github.com/lfittl/activerecord-clean-db-structure/pull/30)
+* Bump activerecord [#34](https://github.com/lfittl/activerecord-clean-db-structure/pull/34)
+
 ## 0.4.0    2019-08-27
 
 * Add "indexes_after_tables" option to allow indexes to be placed following the respective tables [#13](https://github.com/lfittl/activerecord-clean-db-structure/pull/13) [Giovanni Kock Bonetti](https://github.com/giovannibonetti)
