@@ -40,15 +40,20 @@ module ActiveRecordCleanDbStructure
 
       unless options[:ignore_ids] == true
         # Reduce noise for id fields by making them SERIAL instead of integer+sequence stuff
-        #
+        # Skips standalone sequences
         # This is a bit optimistic, but works as long as you don't have an id field thats not a sequence/uuid
+        table_sequences_regexp = /^ALTER TABLE ONLY [\w\.]+ ALTER COLUMN id SET DEFAULT nextval\('([\w\.]+)_id_seq'::regclass\);$/
+        table_sequences = dump.scan(table_sequences_regexp).map(&:first)
+        dump.gsub!(table_sequences_regexp, '')
+
         dump.gsub!(/^    id integer NOT NULL(,)?$/, '    id SERIAL PRIMARY KEY\1')
         dump.gsub!(/^    id bigint NOT NULL(,)?$/, '    id BIGSERIAL PRIMARY KEY\1')
         dump.gsub!(/^    id uuid DEFAULT ([\w_]+\.)?uuid_generate_v4\(\) NOT NULL(,)?$/, '    id uuid DEFAULT \1uuid_generate_v4() PRIMARY KEY\2')
         dump.gsub!(/^    id uuid DEFAULT ([\w_]+\.)?gen_random_uuid\(\) NOT NULL(,)?$/, '    id uuid DEFAULT \1gen_random_uuid() PRIMARY KEY\2')
-        dump.gsub!(/^CREATE SEQUENCE [\w\.]+_id_seq\s+(AS integer\s+)?START WITH 1\s+INCREMENT BY 1\s+NO MINVALUE\s+NO MAXVALUE\s+CACHE 1;$/, '')
+        dump.gsub!(/^CREATE SEQUENCE ([\w\.]+)_id_seq\s+(AS integer\s+)?START WITH 1\s+INCREMENT BY 1\s+NO MINVALUE\s+NO MAXVALUE\s+CACHE 1;$/) do |s|
+          table_sequences.include?(Regexp.last_match[1]) ? '' : s
+        end
         dump.gsub!(/^ALTER SEQUENCE [\w\.]+_id_seq OWNED BY .*;$/, '')
-        dump.gsub!(/^ALTER TABLE ONLY [\w\.]+ ALTER COLUMN id SET DEFAULT nextval\('[\w\.]+_id_seq'::regclass\);$/, '')
         dump.gsub!(/^ALTER TABLE ONLY [\w\.]+\s+ADD CONSTRAINT [\w\.]+_pkey PRIMARY KEY \(id\);$/, '')
         dump.gsub!(/^-- Name: (\w+\s+)?id; Type: DEFAULT$/, '')
         dump.gsub!(/^-- .*_id_seq; Type: SEQUENCE.*/, '')
