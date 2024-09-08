@@ -91,7 +91,7 @@ By default the gem will remove some extensions that typically aren't needed in s
 
 ```ruby
 Rails.application.configure do
-  config.activerecord_clean_db_structure.do_not_remove_extensions = true
+  config.activerecord_clean_db_structure.keep_extensions = :all
 end
 ```
 
