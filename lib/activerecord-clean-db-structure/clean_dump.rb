@@ -148,7 +148,7 @@ module ActiveRecordCleanDbStructure
           inside_table = true
           columns = []
           result << source_line
-        elsif source_line.start_with?(");")
+        elsif source_line.start_with?(")")
           if inside_table
             inside_table = false
             columns.sort_by!(&:first)
