@@ -21,14 +21,15 @@ module ActiveRecordCleanDbStructure
       dump.gsub!(/^SET xmloption = content;\n/m, '') # 12
       dump.gsub!(/^SET default_table_access_method = heap;\n/m, '') # 12
 
-      unless options[:keep_extensions] == :all
-        # Remove pg_stat_statements extension (its not relevant to the code)
-        dump.gsub!(/^CREATE EXTENSION IF NOT EXISTS pg_stat_statements.*/, '')
-        dump.gsub!(/^-- Name: (EXTENSION )?pg_stat_statements;.*/, '')
-
-        # Remove pg_buffercache extension (its not relevant to the code)
-        dump.gsub!(/^CREATE EXTENSION IF NOT EXISTS pg_buffercache.*/, '')
-        dump.gsub!(/^-- Name: (EXTENSION )?pg_buffercache;.*/, '')
+      extensions_to_remove = ["pg_stat_statements", "pg_buffercache"]
+      if options[:keep_extensions] == :all
+        extensions_to_remove = [] 
+      elsif options[:keep_extensions]
+        extensions_to_remove -= Array(options[:keep_extensions])
+      end
+      extensions_to_remove.each do |ext|
+        dump.gsub!(/^CREATE EXTENSION IF NOT EXISTS #{ext}.*/, '')
+        dump.gsub!(/^-- Name: (EXTENSION )?#{ext};.*/, '')
       end
 
       # Remove comments on extensions, they create problems if the extension is owned by another user
