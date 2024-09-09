@@ -87,11 +87,14 @@ INSERT INTO "schema_migrations" (version) VALUES
 ;
 ```
 
-By default the gem will remove some extensions that typically aren't needed in structure dumps. You can choose to keep all extensions:
+By default the gem will remove some extensions that typically aren't needed in structure dumps. You can choose to keep all, or just some, of those extensions:
 
 ```ruby
 Rails.application.configure do
   config.activerecord_clean_db_structure.keep_extensions = :all
+
+  # This does the same thing as :all. You can choose which optional extensions to keep.
+  config.activerecord_clean_db_structure.keep_extensions = ["pg_stat_statements", "pg_buffercache"]
 end
 ```
 
