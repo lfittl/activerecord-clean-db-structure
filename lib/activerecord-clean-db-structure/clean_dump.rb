@@ -121,7 +121,7 @@ module ActiveRecordCleanDbStructure
         dump.gsub!(/^CREATE( UNIQUE)? INDEX \w+ ON .+\n+/, '')
         dump.gsub!(/^-- Name: \w+; Type: INDEX\n+/, '')
         indexes.each do |table, indexes_for_table|
-          dump.gsub!(/^(CREATE TABLE #{table}\b(:?[^;\n]*\n)+\);\n)/) { $1 + "\n" + indexes_for_table }
+          dump.gsub!(/^(CREATE TABLE #{table}\b(:?[^;\n]*\n)+\);*\n(?:.*);*)/) { $1 + "\n" + indexes_for_table }
         end
       end
 
