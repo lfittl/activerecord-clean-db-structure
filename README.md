@@ -87,7 +87,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ;
 ```
 
-By default the gem will remove some extensions that typically aren't needed in structure dumps. You can choose to keep all, or just some, of those extensions:
+By default the gem will remove [some extensions](https://github.com/ghiculescu/activerecord-clean-db-structure/blob/c9551391476a5e7a08ff314501af89baddcf669a/lib/activerecord-clean-db-structure/clean_dump.rb#L24) that typically aren't needed in structure dumps. You can choose to keep all, or just some, of those extensions:
 
 ```ruby
 Rails.application.configure do
