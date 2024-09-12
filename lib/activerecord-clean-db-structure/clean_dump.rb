@@ -84,7 +84,7 @@ module ActiveRecordCleanDbStructure
       partitioned_tables += dump.scan(partitioned_tables_regexp2).map(&:first)
 
       partitioned_tables.each do |partitioned_table|
-        partitioned_schema_name, partitioned_table_name_only = partitioned_table.split('.', 2)
+        _partitioned_schema_name, partitioned_table_name_only = partitioned_table.split('.', 2)
         dump.gsub!(/-- Name: #{partitioned_table_name_only}; Type: TABLE/, '')
         dump.gsub!(/CREATE TABLE #{partitioned_table} \([^;]+;/m, '')
         dump.gsub!(/ALTER TABLE ONLY ([\w_\.]+) ATTACH PARTITION #{partitioned_table}[^;]+;/m, '')
@@ -124,7 +124,7 @@ module ActiveRecordCleanDbStructure
         dump.gsub!(/^CREATE( UNIQUE)? INDEX \w+ ON .+\n+/, '')
         dump.gsub!(/^-- Name: \w+; Type: INDEX\n+/, '')
         indexes.each do |table, indexes_for_table|
-          dump.gsub!(/^(CREATE TABLE #{table}\b(:?[^;\n]*\n)+\);*\n(?:.*);*)/) { $1 + "\n" + indexes_for_table }
+          dump.gsub!(/^(CREATE TABLE #{table}\b(:?[^;\n]*\n)+\);*\n(?:.*);*)/) { $1 + "\n\n" + indexes_for_table }
         end
       end
 
