@@ -4,6 +4,11 @@
 
 * ...
 
+## 0.4.2    2024-09-11
+
+* Add an option to not remove extensions [#43](https://github.com/lfittl/activerecord-clean-db-structure/pull/43)
+* Fix incorrect primary structure.sql filename in the case of multi-database setup [#44](https://github.com/lfittl/activerecord-clean-db-structure/pull/44)
+
 ## 0.4.1    2024-08-28
 
 * Fix Rake task name for 6.1+ [#32](https://github.com/lfittl/activerecord-clean-db-structure/pull/32)
