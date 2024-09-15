@@ -36,7 +36,7 @@ module ActiveRecordCleanDbStructure
       dump.gsub!(/^COMMENT ON EXTENSION .*/, '')
 
       # Remove useless, version-specific parts of comments
-      dump.gsub!(/^-- (.*); Schema: ([\w_\.]+|-); Owner: -.*/, '-- \1')
+      dump.gsub!(/^-- (.*); Schema: ([\w\.]+|-); Owner: -.*/, '-- \1')
 
       # Remove useless comment lines
       dump.gsub!(/^--$/, '')
@@ -47,8 +47,8 @@ module ActiveRecordCleanDbStructure
         # This is a bit optimistic, but works as long as you don't have an id field thats not a sequence/uuid
         dump.gsub!(/^    id integer NOT NULL(,)?$/, '    id SERIAL PRIMARY KEY\1')
         dump.gsub!(/^    id bigint NOT NULL(,)?$/, '    id BIGSERIAL PRIMARY KEY\1')
-        dump.gsub!(/^    id uuid DEFAULT ([\w_]+\.)?uuid_generate_v4\(\) NOT NULL(,)?$/, '    id uuid DEFAULT \1uuid_generate_v4() PRIMARY KEY\2')
-        dump.gsub!(/^    id uuid DEFAULT ([\w_]+\.)?gen_random_uuid\(\) NOT NULL(,)?$/, '    id uuid DEFAULT \1gen_random_uuid() PRIMARY KEY\2')
+        dump.gsub!(/^    id uuid DEFAULT ([\w]+\.)?uuid_generate_v4\(\) NOT NULL(,)?$/, '    id uuid DEFAULT \1uuid_generate_v4() PRIMARY KEY\2')
+        dump.gsub!(/^    id uuid DEFAULT ([\w]+\.)?gen_random_uuid\(\) NOT NULL(,)?$/, '    id uuid DEFAULT \1gen_random_uuid() PRIMARY KEY\2')
         dump.gsub!(/^CREATE SEQUENCE [\w\.]+_id_seq\s+(AS integer\s+)?START WITH 1\s+INCREMENT BY 1\s+NO MINVALUE\s+NO MAXVALUE\s+CACHE 1;$/, '')
         dump.gsub!(/^ALTER SEQUENCE [\w\.]+_id_seq OWNED BY .*;$/, '')
         dump.gsub!(/^ALTER TABLE ONLY [\w\.]+ ALTER COLUMN id SET DEFAULT nextval\('[\w\.]+_id_seq'::regclass\);$/, '')
@@ -59,7 +59,7 @@ module ActiveRecordCleanDbStructure
       end
 
       # Remove inherited tables
-      inherited_tables_regexp = /-- Name: ([\w_\.]+); Type: TABLE\n\n[^;]+?INHERITS \([\w_\.]+\);/m
+      inherited_tables_regexp = /-- Name: ([\w\.]+); Type: TABLE\n\n[^;]+?INHERITS \([\w\.]+\);/m
       inherited_tables = dump.scan(inherited_tables_regexp).map(&:first)
       dump.gsub!(inherited_tables_regexp, '')
       inherited_tables.each do |inherited_table|
@@ -76,7 +76,7 @@ module ActiveRecordCleanDbStructure
       partitioned_tables = []
 
       # Postgres 12 pg_dump will output separate ATTACH PARTITION statements (even when run against an 11 or older server)
-      partitioned_tables_regexp1 = /ALTER TABLE ONLY [\w_\.]+ ATTACH PARTITION ([\w_\.]+)/
+      partitioned_tables_regexp1 = /ALTER TABLE ONLY [\w\.]+ ATTACH PARTITION ([\w\.]+)/
       partitioned_tables += dump.scan(partitioned_tables_regexp1).map(&:last)
 
       # Earlier versions use an inline PARTITION OF
