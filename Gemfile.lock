@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    activerecord-clean-db-structure (0.4.1)
+    activerecord-clean-db-structure (0.4.2)
       activerecord (>= 4.2)
 
 GEM
