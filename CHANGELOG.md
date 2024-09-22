@@ -4,6 +4,10 @@
 
 * ...
 
+## 0.4.3    2024-09-22
+
+* Fix additional regexp warnings from "rake test". [#50](https://github.com/lfittl/activerecord-clean-db-structure/pull/50)
+
 ## 0.4.2    2024-09-22
 
 * Add an option to not remove extensions [#43](https://github.com/lfittl/activerecord-clean-db-structure/pull/43)
