@@ -80,7 +80,7 @@ module ActiveRecordCleanDbStructure
       partitioned_tables += dump.scan(partitioned_tables_regexp1).map(&:last)
 
       # Earlier versions use an inline PARTITION OF
-      partitioned_tables_regexp2 = /-- Name: ([\w_\.]+); Type: TABLE\n\n[^;]+?PARTITION OF [\w_\.]+\n[^;]+?;/m
+      partitioned_tables_regexp2 = /-- Name: ([\w\.]+); Type: TABLE\n\n[^;]+?PARTITION OF [\w\.]+\n[^;]+?;/m
       partitioned_tables += dump.scan(partitioned_tables_regexp2).map(&:first)
 
       partitioned_tables.each do |partitioned_table|
@@ -104,7 +104,7 @@ module ActiveRecordCleanDbStructure
         dump.gsub!(/-- Name: #{partitioned_table}_pkey; Type: INDEX ATTACH\n\n[^;]+?ATTACH PARTITION ([\w_]+\.)?#{partitioned_table}_pkey;/, '')
       end
       # This is mostly done to allow restoring Postgres 11 output on Postgres 10
-      dump.gsub!(/CREATE INDEX ([\w_]+) ON ONLY/, 'CREATE INDEX \\1 ON')
+      dump.gsub!(/CREATE INDEX ([\w]+) ON ONLY/, 'CREATE INDEX \\1 ON')
 
       if options[:order_schema_migrations_values] == true
         schema_migrations_cleanup
