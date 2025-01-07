@@ -28,4 +28,3 @@ PARTITION BY RANGE (collected_at);
 
 ALTER TABLE ONLY public.schema_table_infos_35d
     ADD CONSTRAINT schema_table_infos_35d_pkey PRIMARY KEY (schema_table_id, collected_at);
-

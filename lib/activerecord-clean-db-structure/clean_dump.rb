@@ -8,6 +8,13 @@ module ActiveRecordCleanDbStructure
     end
 
     def run
+      clean_partition_tables # Must be first because it makes assumptions about string format
+      clean
+      clean_inherited_tables
+      clean_options
+    end
+
+    def clean
       # Remove trailing whitespace
       dump.gsub!(/[ \t]+$/, '')
       dump.gsub!(/\A\n/, '')
@@ -57,8 +64,9 @@ module ActiveRecordCleanDbStructure
         dump.gsub!(/^-- .*_id_seq; Type: SEQUENCE.*/, '')
         dump.gsub!(/^-- Name: (\w+\s+)?\w+_pkey; Type: CONSTRAINT$/, '')
       end
+    end
 
-      # Remove inherited tables
+    def clean_inherited_tables
       inherited_tables_regexp = /-- Name: ([\w\.]+); Type: TABLE\n\n[^;]+?INHERITS \([\w\.]+\);/m
       inherited_tables = dump.scan(inherited_tables_regexp).map(&:first)
       dump.gsub!(inherited_tables_regexp, '')
@@ -71,8 +79,9 @@ module ActiveRecordCleanDbStructure
         end
         dump.gsub!(index_regexp, '')
       end
+    end
 
-      # Remove partitioned tables
+    def clean_partition_tables
       partitioned_tables = []
 
       # Postgres 12 pg_dump will output separate ATTACH PARTITION statements (even when run against an 11 or older server)
@@ -83,30 +92,23 @@ module ActiveRecordCleanDbStructure
       partitioned_tables_regexp2 = /-- Name: ([\w\.]+); Type: TABLE\n\n[^;]+?PARTITION OF [\w\.]+\n[^;]+?;/m
       partitioned_tables += dump.scan(partitioned_tables_regexp2).map(&:first)
 
-      partitioned_tables.each do |partitioned_table|
-        _partitioned_schema_name, partitioned_table_name_only = partitioned_table.split('.', 2)
-        dump.gsub!(/-- Name: #{partitioned_table_name_only}; Type: TABLE ATTACH/, '')
-        dump.gsub!(/-- Name: #{partitioned_table_name_only}; Type: TABLE/, '')
-        dump.gsub!(/CREATE TABLE #{partitioned_table} \([^;]+;/m, '')
-        dump.gsub!(/ALTER TABLE ONLY ([\w_\.]+) ATTACH PARTITION #{partitioned_table}[^;]+;/m, '')
-
-        dump.gsub!(/ALTER TABLE ONLY ([\w_]+\.)?#{partitioned_table}[^;]+;/, '')
-        dump.gsub!(/-- Name: #{partitioned_table} [^;]+; Type: DEFAULT/, '')
-
-        index_regexp = /CREATE (UNIQUE )?INDEX ([\w_]+) ON ([\w_]+\.)?#{partitioned_table}[^;]+;/m
-        dump.scan(index_regexp).each do |m|
-          partitioned_table_index = m[1]
-          dump.gsub!("-- Name: #{partitioned_table_index}; Type: INDEX ATTACH", '')
-          dump.gsub!("-- Name: #{partitioned_table_index}; Type: INDEX", '')
-          dump.gsub!(/ALTER INDEX ([\w_\.]+) ATTACH PARTITION ([\w_]+\.)?#{partitioned_table_index};/, '')
-        end
-        dump.gsub!(index_regexp, '')
-        dump.gsub!(/-- Name: #{partitioned_table_name_only}_pkey; Type: INDEX ATTACH/, '')
-        dump.gsub!(/ALTER INDEX ([\w_]+\.)?[\w_]+_pkey ATTACH PARTITION #{partitioned_table}_pkey;/, '')
+      # We assume that a comment + schema statement pair has 3 trailing newlines.
+      # This makes it easier to drop both the comment and statement at once.
+      statements = dump.split("\n\n\n")
+      names = []
+      partitioned_tables.each { |table| names << table.split('.', 2)[1] }
+      if names.any?
+        dump.scan(/CREATE (UNIQUE )?INDEX ([\w_]+) ON ([\w_]+\.)?(#{names.join('|')})[^;]+;/m).each { |m| names << m[1] }
       end
+      statements.reject! { |stmt| names.any? { |name| stmt.include?(name) } }
+      @dump = statements.join("\n\n")
+      @dump << "\n" if @dump[-1] != "\n"
+
       # This is mostly done to allow restoring Postgres 11 output on Postgres 10
       dump.gsub!(/CREATE INDEX ([\w]+) ON ONLY/, 'CREATE INDEX \\1 ON')
+    end
 
+    def clean_options
       if options[:order_schema_migrations_values] == true
         schema_migrations_cleanup
       else
