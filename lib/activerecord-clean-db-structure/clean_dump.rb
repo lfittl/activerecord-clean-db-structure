@@ -85,6 +85,7 @@ module ActiveRecordCleanDbStructure
 
       partitioned_tables.each do |partitioned_table|
         _partitioned_schema_name, partitioned_table_name_only = partitioned_table.split('.', 2)
+        dump.gsub!(/-- Name: #{partitioned_table_name_only}; Type: TABLE ATTACH/, '')
         dump.gsub!(/-- Name: #{partitioned_table_name_only}; Type: TABLE/, '')
         dump.gsub!(/CREATE TABLE #{partitioned_table} \([^;]+;/m, '')
         dump.gsub!(/ALTER TABLE ONLY ([\w_\.]+) ATTACH PARTITION #{partitioned_table}[^;]+;/m, '')
@@ -100,8 +101,8 @@ module ActiveRecordCleanDbStructure
           dump.gsub!(/ALTER INDEX ([\w_\.]+) ATTACH PARTITION ([\w_]+\.)?#{partitioned_table_index};/, '')
         end
         dump.gsub!(index_regexp, '')
-
-        dump.gsub!(/-- Name: #{partitioned_table}_pkey; Type: INDEX ATTACH\n\n[^;]+?ATTACH PARTITION ([\w_]+\.)?#{partitioned_table}_pkey;/, '')
+        dump.gsub!(/-- Name: #{partitioned_table_name_only}_pkey; Type: INDEX ATTACH/, '')
+        dump.gsub!(/ALTER INDEX ([\w_]+\.)?[\w_]+_pkey ATTACH PARTITION #{partitioned_table}_pkey;/, '')
       end
       # This is mostly done to allow restoring Postgres 11 output on Postgres 10
       dump.gsub!(/CREATE INDEX ([\w]+) ON ONLY/, 'CREATE INDEX \\1 ON')
