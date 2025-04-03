@@ -10,8 +10,10 @@ module ActiveRecordCleanDbStructure
     def run
       clean_partition_tables # Must be first because it makes assumptions about string format
       clean
+      clean_ignored_schemas
       clean_inherited_tables
       clean_options
+      clean_schema_comments
     end
 
     def clean
@@ -44,7 +46,7 @@ module ActiveRecordCleanDbStructure
       dump.gsub!(/^COMMENT ON EXTENSION .*/, '')
 
       # Remove useless, version-specific parts of comments
-      dump.gsub!(/^-- (.*); Schema: ([\w\.]+|-); Owner: -.*/, '-- \1')
+      dump.gsub!(/^-- (.*); Owner: -.*/, '-- \1')
 
       # Remove useless comment lines
       dump.gsub!(/^--$/, '')
@@ -61,14 +63,14 @@ module ActiveRecordCleanDbStructure
         dump.gsub!(/^ALTER SEQUENCE [\w\.]+_id_seq OWNED BY .*;$/, '')
         dump.gsub!(/^ALTER TABLE ONLY [\w\.]+ ALTER COLUMN id SET DEFAULT nextval\('[\w\.]+_id_seq'::regclass\);$/, '')
         dump.gsub!(/^ALTER TABLE ONLY [\w\.]+\s+ADD CONSTRAINT [\w\.]+_pkey PRIMARY KEY \(id\);$/, '')
-        dump.gsub!(/^-- Name: (\w+\s+)?id; Type: DEFAULT$/, '')
+        dump.gsub!(/^-- Name: (\w+\s+)?id; Type: DEFAULT; Schema: \w+$/, '')
         dump.gsub!(/^-- .*_id_seq; Type: SEQUENCE.*/, '')
-        dump.gsub!(/^-- Name: (\w+\s+)?\w+_pkey; Type: CONSTRAINT$/, '')
+        dump.gsub!(/^-- Name: (\w+\s+)?\w+_pkey; Type: CONSTRAINT; Schema: \w+$/, '')
       end
     end
 
     def clean_inherited_tables
-      inherited_tables_regexp = /-- Name: ([\w\.]+); Type: TABLE\n\n[^;]+?INHERITS \([\w\.]+\);/m
+      inherited_tables_regexp = /-- Name: ([\w\.]+); Type: TABLE; Schema: \w+\n\n[^;]+?INHERITS \([\w\.]+\);/m
       inherited_tables = dump.scan(inherited_tables_regexp).map(&:first)
       dump.gsub!(inherited_tables_regexp, '')
       inherited_tables.each do |inherited_table|
@@ -76,9 +78,18 @@ module ActiveRecordCleanDbStructure
 
         index_regexp = /CREATE INDEX ([\w_]+) ON ([\w_]+\.)?#{inherited_table}[^;]+;/m
         dump.scan(index_regexp).map(&:first).each do |inherited_table_index|
-          dump.gsub!("-- Name: #{inherited_table_index}; Type: INDEX", '')
+          dump.gsub!(/-- Name: #{inherited_table_index}; Type: INDEX; Schema: \w+/, '')
         end
         dump.gsub!(index_regexp, '')
+      end
+    end
+
+    def clean_ignored_schemas
+      return if options[:ignore_schemas].nil?
+      options[:ignore_schemas].each do |schema|
+        dump.gsub!(/-- Name: ([^;]+); Type: \w+; Schema: #{schema}\n\n(?:(?!(-- Name:|SET default_tablespace)).)*/m, '')
+        dump.gsub!(/-- Name: #{schema}; Type: SCHEMA; Schema: -\n\n(?:(?!(-- Name:|SET default_tablespace)).)*/m, '')
+        dump.gsub!(/-- Name: \w+; Type: EXTENSION; Schema: -\n\n\nCREATE EXTENSION IF NOT EXISTS \w+ WITH SCHEMA #{schema};(?:(?!(-- Name:|SET default_tablespace)).)*/m, '')
       end
     end
 
@@ -126,7 +137,7 @@ module ActiveRecordCleanDbStructure
             .transform_values(&:join)
 
         dump.gsub!(/^CREATE( UNIQUE)? INDEX \w+ ON .+\n+/, '')
-        dump.gsub!(/^-- Name: \w+; Type: INDEX\n+/, '')
+        dump.gsub!(/^-- Name: \w+; Type: INDEX; Schema: \w+\n+/, '')
         indexes.each do |table, indexes_for_table|
           dump.gsub!(/^(CREATE TABLE #{table}\b(:?[^;\n]*\n)+\);*\n(?:.*);*)/) { $1 + "\n\n" + indexes_for_table }
         end
@@ -138,6 +149,11 @@ module ActiveRecordCleanDbStructure
       if options[:order_column_definitions] == true
         dump.replace(order_column_definitions(dump))
       end
+    end
+
+    def clean_schema_comments
+      # Remove schema in comments for backwards compatibility
+      dump.gsub!(/^-- (.*); Schema: [\w-]+/, '-- \1')
     end
 
     def order_column_definitions(source)
