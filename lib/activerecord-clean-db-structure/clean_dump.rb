@@ -99,7 +99,7 @@ module ActiveRecordCleanDbStructure
       names = []
       partitioned_tables.each { |table| names << table.split('.', 2)[1] }
       if names.any?
-        dump.scan(/CREATE (UNIQUE )?INDEX ([\w_]+) ON ([\w_]+\.)?(#{names.join('|')})[^;]+;/m).each { |m| names << m[1] }
+        dump.scan(/CREATE (UNIQUE )?INDEX (\w+) ON (\w+\.)?(#{names.join('|')})[^;]+;/m).each { |m| names << m[1] }
       end
       statements.reject! { |stmt| names.any? { |name| stmt.include?(name) } }
       @dump = statements.join("\n\n")
