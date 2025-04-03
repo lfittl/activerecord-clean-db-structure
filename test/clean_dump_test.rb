@@ -29,6 +29,11 @@ class CleanDumpTest < Minitest::Test
     assert_cleans_dump "data/partitions.sql", "expectations/partitions.sql"
   end
 
+  def test_ignored_schemas
+    assert_cleans_dump "data/ignored_schemas.sql", "expectations/ignored_schemas_pganalyze.sql", ignore_schemas: ['pganalyze']
+    assert_cleans_dump "data/ignored_schemas.sql", "expectations/ignored_schemas_myschema.sql", ignore_schemas: ['myschema']
+  end
+
   private
 
   def assert_cleans_dump(input, output, props = {})

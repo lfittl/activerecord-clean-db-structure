@@ -40,6 +40,8 @@ end
 
 ## Other options
 
+### indexes_after_tables
+
 You can optionally have indexes following the respective tables setting `indexes_after_tables`:
 
 ```ruby
@@ -61,6 +63,8 @@ CREATE INDEX index_users_on_tentant_id ON public.users USING btree (tenant_id);
 CREATE UNIQUE INDEX index_users_on_email ON public.users USING btree (email);
 ```
 
+### order_column_definitions
+
 To enable sorting the table column definitions alphabetically, discarding the actual order provided by `pg_dump`, set `order_column_definitions`:
 
 ```ruby
@@ -68,6 +72,8 @@ Rails.application.configure do
   config.activerecord_clean_db_structure.order_column_definitions = true
 end
 ```
+
+### order_schema_migrations_values
 
 You can have the schema_migrations values reorganized to prevent merge conflicts by setting `order_schema_migrations_values`:
 
@@ -87,6 +93,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ;
 ```
 
+### keep_extensions
+
 By default the gem will remove [some extensions](https://github.com/ghiculescu/activerecord-clean-db-structure/blob/c9551391476a5e7a08ff314501af89baddcf669a/lib/activerecord-clean-db-structure/clean_dump.rb#L24) that typically aren't needed in structure dumps. You can choose to keep all, or just some, of those extensions:
 
 ```ruby
@@ -94,7 +102,17 @@ Rails.application.configure do
   config.activerecord_clean_db_structure.keep_extensions = :all
 
   # This does the same thing as :all. You can choose which optional extensions to keep.
-  config.activerecord_clean_db_structure.keep_extensions = ["pg_stat_statements", "pg_buffercache"]
+  config.activerecord_clean_db_structure.keep_extensions = ['pg_stat_statements', 'pg_buffercache']
+end
+```
+
+### ignore_schmeas
+
+You can ignore specific schemas, for example when dumping from a database copy that is integrated with pganalyze and has helper functions:
+
+```ruby
+Rails.application.configure do
+  config.activerecord_clean_db_structure.ignore_schemas = ['pganalyze']
 end
 ```
 
