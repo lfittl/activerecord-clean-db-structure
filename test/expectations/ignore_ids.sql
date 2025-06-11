@@ -70,6 +70,11 @@ ALTER TABLE ONLY public.ar_internal_metadata
 ALTER TABLE ONLY public.delayed_jobs
     ADD CONSTRAINT delayed_jobs_pkey PRIMARY KEY (id);
 
+-- Name: unique_locked_by_locked_at; Type: CONSTRAINT
+
+ALTER TABLE ONLY public.delayed_jobs
+    ADD CONSTRAINT unique_locked_by_locked_at UNIQUE (locked_by, locked_at) DEFERRABLE INITIALLY DEFERRED;
+
 -- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT
 
 ALTER TABLE ONLY public.schema_migrations
