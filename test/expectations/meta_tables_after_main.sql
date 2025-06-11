@@ -40,6 +40,8 @@ WITH (fillfactor='85');
 CREATE INDEX index_delayed_jobs_on_locked_by ON public.delayed_jobs USING btree (locked_by);
 CREATE INDEX index_delayed_jobs_on_queue ON public.delayed_jobs USING btree (queue);
 CREATE INDEX index_delayed_jobs_on_run_at ON public.delayed_jobs USING btree (run_at) WHERE (locked_at IS NULL);
+ALTER TABLE ONLY public.delayed_jobs
+    ADD CONSTRAINT unique_locked_by_locked_at UNIQUE (locked_by, locked_at) DEFERRABLE INITIALLY DEFERRED;
 
 -- Name: schema_migrations; Type: TABLE
 
