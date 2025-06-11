@@ -129,7 +129,7 @@ module ActiveRecordCleanDbStructure
         dump.gsub!(/^(INSERT INTO schema_migrations .*)\n\n/, "\\1\n")
       end
 
-      if options[:meta_tables_after_main] == true
+      if options[:indexes_after_tables] || options[:meta_tables_after_main]
         # Extract indexes
         indexes =
           dump
