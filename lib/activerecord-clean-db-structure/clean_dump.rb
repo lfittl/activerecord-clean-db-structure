@@ -129,6 +129,11 @@ module ActiveRecordCleanDbStructure
         dump.gsub!(/^(INSERT INTO schema_migrations .*)\n\n/, "\\1\n")
       end
 
+      # TODO: Remove support for :indexes_after_tables in version 1.0.0
+      if options[:indexes_after_tables]
+        warn "[DEPRECATION] The :indexes_after_tables option is deprecated and will be removed in version 1.0.0. Use :meta_tables_after_main instead."
+      end
+
       if options[:indexes_after_tables] || options[:meta_tables_after_main]
         # Extract indexes
         indexes =
