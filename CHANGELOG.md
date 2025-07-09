@@ -4,6 +4,16 @@
 
 * ...
 
+## 0.5.0    2025-07-09
+
+### Added
+* Introduced `:meta_tables_after_main` option as a more flexible replacement for `:indexes_after_tables`.  
+  This option places indexes and deferrable constraints after their respective `CREATE TABLE` statements.
+
+### Deprecated
+* `:indexes_after_tables` is now deprecated and will be removed in version 1.0.0.  
+  Please migrate to the new `:meta_tables_after_main` option.
+
 ## 0.4.3    2024-09-22
 
 * Fix additional regexp warnings from "rake test". [#50](https://github.com/lfittl/activerecord-clean-db-structure/pull/50)
