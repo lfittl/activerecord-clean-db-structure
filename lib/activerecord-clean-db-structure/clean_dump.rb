@@ -128,7 +128,7 @@ module ActiveRecordCleanDbStructure
       move_unique_constraints if options[:move_unique_constraints_to_tables] == true
       order_column_definitions if options[:order_column_definitions] == true
 
-      dump.gsub!(/^\\restrict .*$\n\n/, '')
+      dump.gsub!(/^\\restrict .*$\n{2,4}/, '')
       dump.gsub!(/^\\unrestrict .*$\n\n/, '')
 
       # Reduce 2+ lines of whitespace to one line of whitespace
