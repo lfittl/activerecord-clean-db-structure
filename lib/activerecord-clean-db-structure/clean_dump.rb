@@ -17,6 +17,8 @@ module ActiveRecordCleanDbStructure
 
       # Remove version-specific output
       dump.gsub!(/^-- Dumped.*/, '')
+      dump.gsub!(/^\\restrict .*$\n\n/, '')
+      dump.gsub!(/^\\unrestrict .*$\n\n/, '')
       dump.gsub!(/^SET row_security = off;\n/m, '') # 9.5
       dump.gsub!(/^SET idle_in_transaction_session_timeout = 0;\n/m, '') # 9.6
       dump.gsub!(/^SET default_with_oids = false;\n/m, '') # all older than 12
