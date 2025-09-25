@@ -79,6 +79,7 @@ GEM
     unicode-display_width (2.5.0)
 
 PLATFORMS
+  arm64-darwin-24
   x86_64-linux
 
 DEPENDENCIES
