@@ -30,6 +30,7 @@ module ActiveRecordCleanDbStructure
       dump.gsub!(/^SET default_with_oids = false;\n/m, '') # all older than 12
       dump.gsub!(/^SET xmloption = content;\n/m, '') # 12
       dump.gsub!(/^SET default_table_access_method = heap;\n/m, '') # 12
+      dump.gsub!(/^\\(un)?restrict [A-Za-z0-9]+\n\n?/m, '') # 17.6
 
       extensions_to_remove = ["pg_stat_statements", "pg_buffercache"]
       if options[:keep_extensions] == :all
