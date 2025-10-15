@@ -17,8 +17,8 @@ class CleanDumpTest < Minitest::Test
     assert_cleans_dump "data/input.sql", "expectations/order_schema_migrations_values.sql", order_schema_migrations_values: true
   end
 
-  def test_indexes_after_tables
-    assert_cleans_dump "data/input.sql", "expectations/indexes_after_tables.sql", indexes_after_tables: true
+  def test_meta_tables_after_main
+    assert_cleans_dump "data/input.sql", "expectations/meta_tables_after_main.sql", meta_tables_after_main: true
   end
 
   def test_keep_extensions_all

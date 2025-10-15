@@ -46,6 +46,11 @@ CREATE TABLE public.schema_migrations (
 ALTER TABLE ONLY public.ar_internal_metadata
     ADD CONSTRAINT ar_internal_metadata_pkey PRIMARY KEY (key);
 
+-- Name: unique_locked_by_locked_at; Type: CONSTRAINT
+
+ALTER TABLE ONLY public.delayed_jobs
+    ADD CONSTRAINT unique_locked_by_locked_at UNIQUE (locked_by, locked_at) DEFERRABLE INITIALLY DEFERRED;
+
 ALTER TABLE ONLY public.schema_migrations
     ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
 
