@@ -1,3 +1,5 @@
+\restrict eVA4gCZvdSnhJn7MKha0lZbmA4
+
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -148,6 +150,8 @@ CREATE INDEX index_delayed_jobs_on_run_at ON public.delayed_jobs USING btree (ru
 --
 
 SET search_path TO "$user", public;
+
+\unrestrict eVA4gCZvdSnhJn7MKha0lZbmA4
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20240822225012'),
