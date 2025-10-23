@@ -39,6 +39,7 @@ WITH (fillfactor='85');
 
 CREATE INDEX index_delayed_jobs_on_locked_by ON public.delayed_jobs USING btree (locked_by);
 CREATE INDEX index_delayed_jobs_on_queue ON public.delayed_jobs USING btree (queue);
+CREATE INDEX "index_delayed_jobs_on_failed_at_IS_NULL" ON public.delayed_jobs USING btree (((failed_at IS NULL)));
 CREATE INDEX index_delayed_jobs_on_run_at ON public.delayed_jobs USING btree (run_at) WHERE (locked_at IS NULL);
 
 -- Name: schema_migrations; Type: TABLE

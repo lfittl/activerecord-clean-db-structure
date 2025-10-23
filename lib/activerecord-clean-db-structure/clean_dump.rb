@@ -34,7 +34,7 @@ module ActiveRecordCleanDbStructure
 
       extensions_to_remove = ["pg_stat_statements", "pg_buffercache"]
       if options[:keep_extensions] == :all
-        extensions_to_remove = [] 
+        extensions_to_remove = []
       elsif options[:keep_extensions]
         extensions_to_remove -= Array(options[:keep_extensions])
       end
@@ -77,7 +77,7 @@ module ActiveRecordCleanDbStructure
       inherited_tables.each do |inherited_table|
         dump.gsub!(/ALTER TABLE ONLY ([\w_]+\.)?#{inherited_table}[^;]+;/, '')
 
-        index_regexp = /CREATE INDEX ([\w_]+) ON ([\w_]+\.)?#{inherited_table}[^;]+;/m
+        index_regexp = /CREATE INDEX ("?[\w_]+"?) ON ([\w_]+\.)?#{inherited_table}[^;]+;/m
         dump.scan(index_regexp).map(&:first).each do |inherited_table_index|
           dump.gsub!(/-- Name: #{inherited_table_index}; Type: INDEX; Schema: \w+/, '')
         end
@@ -111,14 +111,14 @@ module ActiveRecordCleanDbStructure
       names = []
       partitioned_tables.each { |table| names << table.split('.', 2)[1] }
       if names.any?
-        dump.scan(/CREATE (UNIQUE )?INDEX (\w+) ON (\w+\.)?(#{names.join('|')})[^;]+;/m).each { |m| names << m[1] }
+        dump.scan(/CREATE (UNIQUE )?INDEX "?(\w+)"? ON (\w+\.)?(#{names.join('|')})[^;]+;/m).each { |m| names << m[1] }
       end
       statements.reject! { |stmt| names.any? { |name| stmt.include?(name) } }
       @dump = statements.join("\n\n")
       @dump << "\n" if @dump[-1] != "\n"
 
       # This is mostly done to allow restoring Postgres 11 output on Postgres 10
-      dump.gsub!(/CREATE INDEX ([\w]+) ON ONLY/, 'CREATE INDEX \\1 ON')
+      dump.gsub!(/CREATE INDEX ("?[\w+]"?) ON ONLY/, 'CREATE INDEX \\1 ON')
     end
 
     def clean_options
@@ -137,7 +137,7 @@ module ActiveRecordCleanDbStructure
             .group_by { |line| line.scan(/\b\w+\.\w+\b/).first }
             .transform_values(&:join)
 
-        dump.gsub!(/^CREATE( UNIQUE)? INDEX \w+ ON .+\n+/, '')
+        dump.gsub!(/^CREATE( UNIQUE)? INDEX "?\w+"? ON .+\n+/, '')
         dump.gsub!(/^-- Name: \w+; Type: INDEX; Schema: \w+\n+/, '')
         indexes.each do |table, indexes_for_table|
           dump.gsub!(/^(CREATE TABLE #{table}\b(:?[^;\n]*\n)+\);*\n(?:.*);*)/) { $1 + "\n\n" + indexes_for_table }
