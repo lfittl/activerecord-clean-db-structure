@@ -1,5 +1,8 @@
 \restrict eVA4gCZvdSnhJn7MKha0lZbmA4
 
+-- Dumped from database version 17.4
+-- Dumped by pg_dump version 17.6
+
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
