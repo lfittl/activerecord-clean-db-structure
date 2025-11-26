@@ -57,6 +57,10 @@ CREATE INDEX index_delayed_jobs_on_locked_by ON public.delayed_jobs USING btree 
 
 CREATE INDEX index_delayed_jobs_on_queue ON public.delayed_jobs USING btree (queue);
 
+-- Name: index_delayed_jobs_on_failed_at_IS_NULL; Type: INDEX
+
+CREATE INDEX "index_delayed_jobs_on_failed_at_IS_NULL" ON public.delayed_jobs USING btree (((failed_at IS NULL)));
+
 -- Name: index_delayed_jobs_on_run_at; Type: INDEX
 
 CREATE INDEX index_delayed_jobs_on_run_at ON public.delayed_jobs USING btree (run_at) WHERE (locked_at IS NULL);
