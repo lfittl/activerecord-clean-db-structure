@@ -129,17 +129,34 @@ module ActiveRecordCleanDbStructure
         dump.gsub!(/^(INSERT INTO schema_migrations .*)\n\n/, "\\1\n")
       end
 
-      if options[:indexes_after_tables] == true
-        # Extract indexes, remove comments and place them just after the respective tables
+      # TODO: Remove support for :indexes_after_tables in version 1.0.0
+      if options[:indexes_after_tables]
+        warn "[DEPRECATION] The :indexes_after_tables option is deprecated and will be removed in version 1.0.0. Use :group_table_definition instead."
+      end
+
+      if options[:indexes_after_tables] || options[:group_table_definition]
+        # Extract indexes
         indexes =
           dump
             .scan(/^CREATE.+INDEX.+ON.+\n/)
             .group_by { |line| line.scan(/\b\w+\.\w+\b/).first }
             .transform_values(&:join)
 
+        # Extract deferrable constraints
+        deferrable_constraints =
+          dump
+            .scan(/^ALTER.+TABLE.+ONLY.+\n.+DEFERRABLE.+\n/)
+            .group_by { |line| line.scan(/\b\w+\.\w+\b/).first }
+            .transform_values(&:join)
+
+        # Remove indexes and deferrable constraints from the dump
         dump.gsub!(/^CREATE( UNIQUE)? INDEX "?\w+"? ON .+\n+/, '')
         dump.gsub!(/^-- Name: \w+; Type: INDEX; Schema: \w+\n+/, '')
-        indexes.each do |table, indexes_for_table|
+
+        dump.gsub!(/^-- Name.+\n\nALTER.+TABLE.+ONLY.+\n.+DEFERRABLE.+\n+/, '')
+
+        indexes_and_constraints = indexes.merge(deferrable_constraints) { |_, v1, v2| v1 + v2 }
+        indexes_and_constraints.each do |table, indexes_for_table|
           dump.gsub!(/^(CREATE TABLE #{table}\b(:?[^;\n]*\n)+\);*\n(?:.*);*)/) { $1 + "\n\n" + indexes_for_table }
         end
       end

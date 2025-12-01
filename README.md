@@ -40,13 +40,13 @@ end
 
 ## Other options
 
-### indexes_after_tables
+### group_table_definition
 
-You can optionally have indexes following the respective tables setting `indexes_after_tables`:
+You can optionally place indexes and constraints (limited to deferrable ones) after the main tables by setting group_table_definition:
 
 ```ruby
 Rails.application.configure do
-  config.activerecord_clean_db_structure.indexes_after_tables = true
+  config.activerecord_clean_db_structure.group_table_definition = true
 end
 ```
 
@@ -61,6 +61,7 @@ CREATE TABLE public.users (
 
 CREATE INDEX index_users_on_tentant_id ON public.users USING btree (tenant_id);
 CREATE UNIQUE INDEX index_users_on_email ON public.users USING btree (email);
+ALTER TABLE public.users ADD CONSTRAINT unique_tenant UNIQUE (tenant_id) DEFERRABLE INITIALLY DEFERRED;
 ```
 
 ### order_column_definitions

@@ -21,6 +21,10 @@ class CleanDumpTest < Minitest::Test
     assert_cleans_dump "data/input.sql", "expectations/indexes_after_tables.sql", indexes_after_tables: true
   end
 
+  def test_group_table_definition
+    assert_cleans_dump "data/input.sql", "expectations/group_table_definition.sql", group_table_definition: true
+  end
+
   def test_keep_extensions_all
     assert_cleans_dump "data/input.sql", "expectations/keep_extensions_all.sql", keep_extensions: :all
   end
