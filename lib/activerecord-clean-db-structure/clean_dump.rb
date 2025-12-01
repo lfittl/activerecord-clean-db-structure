@@ -131,10 +131,10 @@ module ActiveRecordCleanDbStructure
 
       # TODO: Remove support for :indexes_after_tables in version 1.0.0
       if options[:indexes_after_tables]
-        warn "[DEPRECATION] The :indexes_after_tables option is deprecated and will be removed in version 1.0.0. Use :meta_tables_after_main instead."
+        warn "[DEPRECATION] The :indexes_after_tables option is deprecated and will be removed in version 1.0.0. Use :group_table_definition instead."
       end
 
-      if options[:indexes_after_tables] || options[:meta_tables_after_main]
+      if options[:indexes_after_tables] || options[:group_table_definition]
         # Extract indexes
         indexes =
           dump

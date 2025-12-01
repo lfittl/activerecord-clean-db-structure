@@ -40,13 +40,13 @@ end
 
 ## Other options
 
-### meta_tables_after_main
+### group_table_definition
 
-You can optionally place indexes and constraints (limited to deferrable ones) after the main tables by setting meta_tables_after_main:
+You can optionally place indexes and constraints (limited to deferrable ones) after the main tables by setting group_table_definition:
 
 ```ruby
 Rails.application.configure do
-  config.activerecord_clean_db_structure.meta_tables_after_main = true
+  config.activerecord_clean_db_structure.group_table_definition = true
 end
 ```
 
