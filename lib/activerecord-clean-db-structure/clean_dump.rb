@@ -192,7 +192,11 @@ module ActiveRecordCleanDbStructure
         elsif source_line.start_with?(")")
           if inside_table
             inside_table = false
-            columns.sort_by!(&:first)
+
+            # Every inline CHECK constraint parses to the same name ("CONSTRAINT"), and
+            # Ruby's sort is not stable, so tied lines get reordered differently depending
+            # on the platform's qsort. Breaking ties by index keeps pg_dump's own ordering.
+            columns = columns.sort_by.with_index { |(name, _line), index| [name, index] }
 
             columns[0..-2].each do |_, line|
               result << with_column_separator[line]
