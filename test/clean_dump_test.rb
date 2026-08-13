@@ -13,6 +13,17 @@ class CleanDumpTest < Minitest::Test
     assert_cleans_dump "data/input.sql", "expectations/order_column_definitions.sql", order_column_definitions: true
   end
 
+  def test_order_column_definitions_keeps_the_order_of_inline_constraints
+    names = %w[alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima]
+    constraints = names.map { |name| "    CONSTRAINT things_#{name}_check CHECK ((#{name} > 0)),\n" }
+    source = "CREATE TABLE public.things (\n    id bigint NOT NULL,\n#{constraints.join})\n"
+
+    cleaner = ActiveRecordCleanDbStructure::CleanDump.new(+"", order_column_definitions: true)
+    dump = cleaner.order_column_definitions(source)
+
+    assert_equal names, dump.scan(/things_(\w+)_check/).flatten
+  end
+
   def test_order_schema_migrations_values
     assert_cleans_dump "data/input.sql", "expectations/order_schema_migrations_values.sql", order_schema_migrations_values: true
   end
